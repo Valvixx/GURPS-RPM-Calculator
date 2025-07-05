@@ -1,62 +1,62 @@
 <script setup>
 import { ref, computed } from 'vue'
 import Header from './components/Header.vue'
-import ClipboardIcon from './assets/clipboard.svg'
+import InputFields from './components/InputFields.vue'
+import MarkdownBoard from './components/MarkdownBoard.vue'
 
 const name = ref('')
-
 const selectedEffect = ref('')
 const selectedPath = ref('')
+const selectedSize = ref('')
 
 const effects = ['Sense', 'Strengthen', 'Restore', 'Control', 'Destroy', 'Create', 'Transform']
 const paths = ['Body', 'Chance', 'Crossroads', 'Energy', 'Magic', 'Matter', 'Mind', 'Spirit', 'Undead', 'Unexistence']
+const sizes = ['Greater', 'Lesser']
+
+const energy = computed(() => {
+  let base = 0
+  switch (selectedEffect.value) {
+    case 'Sense': base += 2; break
+    case 'Strengthen': base += 3; break
+    case 'Restore': base += 4; break
+    case 'Control':
+    case 'Destroy': base += 5; break
+    case 'Create': base += 6; break
+  }
+  if (selectedSize.value === 'Greater') base *= 3
+  return base
+})
 
 const markdownPreview = computed(() =>
-    `## Spell: ${name.value || '[No Name]'}
-**Path:** ${selectedEffect.value || '[None Effect]'} ${selectedPath.value || '[None Path]'}
-**Energy:** [None Energy]
-`)
+    `## Spell: ${name.value || '[No Name]'}\n` +
+    `**Path:** ${selectedSize.value || '[None Size]'} ${selectedEffect.value || '[None Effect]'} ${selectedPath.value || '[None Path]'}\n` +
+    `**Energy:** ${energy.value || '[None Energy]'}\n`
+)
+
+function copyMarkdown() {
+  navigator.clipboard.writeText(markdownPreview.value)
+      .then(() => console.log('Copied to clipboard'))
+      .catch(err => console.error('Failed to copy:', err))
+}
 </script>
 
 <template>
-<Header></Header>
-
-<div class="content">
-  <div class="input-container">
-    <input id="name-field" class="input" type="text" placeholder="Spell Name" maxlength="65"
-           v-bind:value="name" @input = "name = $event.target.value" />
-
-    <h3 class="head-3">Effects</h3>
-
-    <div class="effects-container">
-      <select class="input effect" v-model="selectedEffect">
-        <option disabled value="">-- Select an effect --</option>
-        <option v-for="effect in effects" :key="effect" :value="effect">
-          {{ effect }}
-        </option>
-      </select>
-
-      <select class="input effect" v-model="selectedPath">
-        <option disabled value="">-- Select a path --</option>
-        <option v-for="path in paths" :key="path" :value="path">
-          {{ path }}
-        </option>
-      </select>
-    </div>
+  <Header />
+  <div class="content">
+    <InputFields
+        v-model:name="name"
+        v-model:selectedEffect="selectedEffect"
+        v-model:selectedPath="selectedPath"
+        v-model:selectedSize="selectedSize"
+        :effects="effects"
+        :paths="paths"
+        :sizes="sizes"
+    />
+    <MarkdownBoard
+        :markdownPreview="markdownPreview"
+        @copy="copyMarkdown"
+    />
   </div>
-
-  <div class="markdown-preview">
-    <h3>Markdown Spell</h3>
-    <div class="pre-wrapper">
-      <pre v-text="markdownPreview"></pre>
-      <button @click="copyMarkdown" id="copy-button">
-        <ClipboardIcon class="icon" />
-      </button>
-    </div>
-  </div>
-</div>
-
-
 </template>
 
 <style>
@@ -65,105 +65,10 @@ const markdownPreview = computed(() =>
   color: #DFD0B8;
 }
 
-/*
-Clipboard button
-*/
-.pre-wrapper {
-  position: relative;
-}
-
-.pre-wrapper pre {
-  white-space: pre-wrap;
-  background-color: #2e2e2e;
-  padding: 1em;
-  border-radius: 4px;
-  line-height: 1.5em;
-  min-height: 10em;
-}
-
-.icon {
-  fill: #948979;
-  width: 24px;
-  height: 24px;
-}
-
-#copy-button {
-  position: absolute;
-  top: 0.5em;
-  right: 0.5em;
-  background: transparent;
-  border: none;
-  color: #dfd0b8;
-  cursor: pointer;
-  font-size: 1.2em;
-  padding: 0.2em;
-  transition: opacity 0.2s;
-}
-
-#copy-button:hover {
-  opacity: 0.8;
-}
-
-/*
-Fields
- */
-#name-field{
-  height: 2em;
-  width: 65em;
-}
-
-.effects-container {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 5em; /* регулируй отступ между дропдаунами */
-}
-
-.input-container{
-  margin-left: 1em;
-}
-
-.input{
-  font-size: 1em;
-  font-family: inherit;
-  text-align: center;
-  border: 3px solid #948979;
-  background-color: #222831;
-  border-radius: 0.5em;
-
-}
-
-.input.effect{
-  height: 2em;
-  width: 30em;
-}
-
-/*
-Markdown board
- */
-.markdown-preview {
-  width: 40em;
-  background: #1f1f1f;
-  color: #dfd0b8;
-  padding: 1em;
-  border: 3px solid #948979;
-  border-radius: 0.5em;
-}
-
-pre {
-  line-height: 2em;
-  height: 10em;
-  white-space: pre-wrap;
-  background-color: #2e2e2e;
-  padding: 1em;
-  border-radius: 0.5em;
-}
-
-.content{
+.content {
   display: flex;
   gap: 3em;
   max-width: 120em;
   padding: 1em;
 }
-
 </style>
