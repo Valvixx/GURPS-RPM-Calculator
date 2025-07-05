@@ -22,6 +22,7 @@ const energy = computed(() => {
     case 'Control':
     case 'Destroy': base += 5; break
     case 'Create': base += 6; break
+    case 'Transform': base += 7; break
   }
   if (selectedSize.value === 'Greater') base *= 3
   return base
@@ -38,6 +39,15 @@ function copyMarkdown() {
       .then(() => console.log('Copied to clipboard'))
       .catch(err => console.error('Failed to copy:', err))
 }
+
+const spellComponents = ref([
+  { size: '', effect: '', path: '' }  // начальная группа
+])
+
+function addSpellComponent() {
+  spellComponents.value.push({ size: '', effect: '', path: '' })
+}
+
 </script>
 
 <template>

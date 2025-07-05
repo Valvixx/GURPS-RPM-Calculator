@@ -52,7 +52,7 @@ const emit = defineEmits(['update:name', 'update:selectedEffect', 'update:select
 
 #name-field {
   height: 2em;
-  width: 66em;
+  width: 50em;
 }
 
 #name-field:hover {
@@ -63,7 +63,7 @@ const emit = defineEmits(['update:name', 'update:selectedEffect', 'update:select
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 3em;
+  gap: 1em;
 }
 
 .input {
@@ -77,7 +77,7 @@ const emit = defineEmits(['update:name', 'update:selectedEffect', 'update:select
 
 .input.effect {
   height: 2em;
-  width: 20em;
+  width: 16em;
 }
 
 .input.effect:hover {
