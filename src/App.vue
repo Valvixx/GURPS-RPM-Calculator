@@ -1,54 +1,63 @@
 <script setup>
-import Header from "./components/Header.vue";
+import { ref, computed } from 'vue'
+import Header from './components/Header.vue'
+import ClipboardIcon from './assets/clipboard.svg'
+
+const name = ref('')
+
+const selectedEffect = ref('')
+const selectedPath = ref('')
+
+const effects = ['Sense', 'Strengthen', 'Restore', 'Control', 'Destroy', 'Create', 'Transform']
+const paths = ['Body', 'Chance', 'Crossroads', 'Energy', 'Magic', 'Matter', 'Mind', 'Spirit', 'Undead', 'Unexistence']
+
+const markdownPreview = computed(() =>
+    `## Spell: ${name.value || '[No Name]'}
+**Path:** ${selectedEffect.value || '[None Effect]'} ${selectedPath.value || '[None Path]'}
+**Energy:** [None Energy]
+`)
 </script>
 
 <template>
 <Header></Header>
-<div class="input-container">
-  <input id="name-field" class="input" type="text" placeholder="Spell Name" v-bind:value="name" @input = "name = $event.target.value" />
 
-  <h3 class="head-3">Effects</h3>
+<div class="content">
+  <div class="input-container">
+    <input id="name-field" class="input" type="text" placeholder="Spell Name" maxlength="65"
+           v-bind:value="name" @input = "name = $event.target.value" />
 
-<div class="effects-container">
-    <select class="input effect" v-model="selectedEffect">
-      <option disabled value="">-- Select an effect --</option>
-      <option v-for="effect in effects" :key="effect" :value="effect">
-        {{ effect }}
-      </option>
-    </select>
+    <h3 class="head-3">Effects</h3>
 
-    <select class="input effect" v-model="selectedPath">
-      <option disabled value="">-- Select a path --</option>
-      <option v-for="path in paths" :key="path" :value="path">
-        {{ path }}
-      </option>
-    </select>
+    <div class="effects-container">
+      <select class="input effect" v-model="selectedEffect">
+        <option disabled value="">-- Select an effect --</option>
+        <option v-for="effect in effects" :key="effect" :value="effect">
+          {{ effect }}
+        </option>
+      </select>
+
+      <select class="input effect" v-model="selectedPath">
+        <option disabled value="">-- Select a path --</option>
+        <option v-for="path in paths" :key="path" :value="path">
+          {{ path }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <div class="markdown-preview">
+    <h3>Markdown Spell</h3>
+    <div class="pre-wrapper">
+      <pre v-text="markdownPreview"></pre>
+      <button @click="copyMarkdown" id="copy-button">
+        <ClipboardIcon class="icon" />
+      </button>
+    </div>
+  </div>
 </div>
 
-<!-- Markdown предпросмотр -->
-<div class="markdown-preview">
-  <h3>Markdown Output</h3>
-  <pre>{{ markdownPreview }}</pre>
-  <button @click="copyMarkdown">📋Скопировать Markdown</button>
-</div>
 
-</div>
 </template>
-
-<script>
-export default {
-  data(){
-    return{
-      name:'',
-      selectedEffect: '',
-      selectedPath: '',
-      effects: ['Sense', 'Strengthen', 'Restore', 'Control', 'Destroy', 'Create', 'Transform'],
-      paths: ['Body', 'Chance', 'Crossroads', 'Energy', 'Magic', 'Matter', 'Mind', 'Spirit', 'Undead', 'Unexistence'],
-
-    }
-  }
-}
-</script>
 
 <style>
 * {
@@ -56,11 +65,62 @@ export default {
   color: #DFD0B8;
 }
 
-form{
+/*
+Clipboard button
+*/
+.pre-wrapper {
+  position: relative;
+}
+
+.pre-wrapper pre {
+  white-space: pre-wrap;
+  background-color: #2e2e2e;
+  padding: 1em;
+  border-radius: 4px;
+  line-height: 1.5em;
+  min-height: 10em;
+}
+
+.icon {
+  fill: #948979;
+  width: 24px;
+  height: 24px;
+}
+
+#copy-button {
+  position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+  background: transparent;
+  border: none;
+  color: #dfd0b8;
+  cursor: pointer;
+  font-size: 1.2em;
+  padding: 0.2em;
+  transition: opacity 0.2s;
+}
+
+#copy-button:hover {
+  opacity: 0.8;
+}
+
+/*
+Fields
+ */
+#name-field{
+  height: 2em;
+  width: 65em;
+}
+
+.effects-container {
   display: flex;
-  flex-direction: column;
-  margin: 0;
-  padding: 0;
+  flex-direction: row;
+  align-items: center;
+  gap: 5em; /* регулируй отступ между дропдаунами */
+}
+
+.input-container{
+  margin-left: 1em;
 }
 
 .input{
@@ -69,6 +129,8 @@ form{
   text-align: center;
   border: 3px solid #948979;
   background-color: #222831;
+  border-radius: 0.5em;
+
 }
 
 .input.effect{
@@ -76,29 +138,32 @@ form{
   width: 30em;
 }
 
-#name-field{
-  height: 2em;
-  width: 65em;
+/*
+Markdown board
+ */
+.markdown-preview {
+  width: 40em;
+  background: #1f1f1f;
+  color: #dfd0b8;
+  padding: 1em;
+  border: 3px solid #948979;
+  border-radius: 0.5em;
 }
 
-#paths-container{
-  padding: 0;
+pre {
+  line-height: 2em;
+  height: 10em;
+  white-space: pre-wrap;
+  background-color: #2e2e2e;
+  padding: 1em;
+  border-radius: 0.5em;
 }
 
-.input-container{
-  margin-top: 1em;
-  margin-left: 1em;
-}
-
-.head-3{
-  margin-top: 1em;
-}
-
-.effects-container {
+.content{
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 5em; /* регулируй отступ между дропдаунами */
+  gap: 3em;
+  max-width: 120em;
+  padding: 1em;
 }
 
 </style>
