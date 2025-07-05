@@ -15,18 +15,27 @@ const sizes = ['Greater', 'Lesser']
 
 const energy = computed(() => {
   let base = 0
-  switch (selectedEffect.value) {
-    case 'Sense': base += 2; break
-    case 'Strengthen': base += 3; break
-    case 'Restore': base += 4; break
-    case 'Control':
-    case 'Destroy': base += 5; break
-    case 'Create': base += 6; break
-    case 'Transform': base += 7; break
+  let greaterCount = 0
+
+  for (const eff of spellEffects.value) {
+    switch (eff.effect) {
+      case 'Sense': base += 2; break
+      case 'Strengthen': base += 3; break
+      case 'Restore': base += 4; break
+      case 'Control':
+      case 'Destroy': base += 5; break
+      case 'Create': base += 6; break
+    }
+
+    if (eff.size === 'Greater') {
+      greaterCount++
+    }
   }
-  if (selectedSize.value === 'Greater') base *= 3
-  return base
+
+  const multiplier = 1 + greaterCount * 2
+  return base * multiplier
 })
+
 
 const markdownPreview = computed(() =>
     `## Spell: ${name.value || '[No Name]'}\n` +
@@ -40,33 +49,36 @@ function copyMarkdown() {
       .catch(err => console.error('Failed to copy:', err))
 }
 
-const spellComponents = ref([
+const spellEffects = ref([
   { size: '', effect: '', path: '' }  // начальная группа
 ])
 
-function addSpellComponent() {
-  spellComponents.value.push({ size: '', effect: '', path: '' })
+function addSpellEffect() {
+  spellEffects.value.push({ size: '', effect: '', path: '' })
 }
 
 </script>
 
 <template>
   <Header />
-  <div class="content">
-    <InputFields
-        v-model:name="name"
-        v-model:selectedEffect="selectedEffect"
-        v-model:selectedPath="selectedPath"
-        v-model:selectedSize="selectedSize"
-        :effects="effects"
-        :paths="paths"
-        :sizes="sizes"
-    />
-    <MarkdownBoard
-        :markdownPreview="markdownPreview"
-        @copy="copyMarkdown"
-    />
+  <div class="wrapper">
+    <div class="content">
+      <InputFields
+          v-model:name="name"
+          :spellEffects="spellEffects"
+          :effects="effects"
+          :paths="paths"
+          :sizes="sizes"
+      />
+      <MarkdownBoard
+          :markdownPreview="markdownPreview"
+          @copy="copyMarkdown"
+      />
+    </div>
+    <button class="add-effect-btn" @click="addSpellEffect">Add Spell Effect</button>
   </div>
+
+
 </template>
 
 <style>
@@ -75,10 +87,30 @@ function addSpellComponent() {
   color: #DFD0B8;
 }
 
-.content {
+.wrapper {
   display: flex;
-  gap: 3em;
+  flex-direction: column;  /* Колонки сверху, кнопка снизу */
+  gap: 1em;
   max-width: 120em;
   padding: 1em;
+}
+
+.content {
+  display: flex;
+  flex-direction: row;
+  gap: 3em;
+}
+
+.add-effect-btn {
+  width: 50em;
+  height: 2em;
+  margin-left: 1em;
+  padding: 0 2em;
+  font-size: 1em;
+  font-family: inherit;
+  text-align: center;
+  border: 3px solid #948979;
+  background-color: #222831;
+  border-radius: 0.5em;
 }
 </style>

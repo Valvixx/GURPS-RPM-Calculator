@@ -1,15 +1,13 @@
 <script setup>
 defineProps({
   name: String,
-  selectedEffect: String,
-  selectedPath: String,
-  selectedSize: String,
+  spellEffects: Array,
   effects: Array,
   paths: Array,
   sizes: Array
 })
 
-const emit = defineEmits(['update:name', 'update:selectedEffect', 'update:selectedPath', 'update:selectedSize'])
+const emit = defineEmits(['update:name'])
 </script>
 
 <template>
@@ -26,24 +24,30 @@ const emit = defineEmits(['update:name', 'update:selectedEffect', 'update:select
 
     <h3 class="head-3">Effects</h3>
 
-    <div class="effects-container">
-      <select class="input effect" :value="selectedSize" @change="emit('update:selectedSize', $event.target.value)">
+    <div
+        v-for="(spellEffect, index) in spellEffects"
+        :key="index"
+        class="effects-container"
+    >
+      <select v-model="spellEffect.size" class="input effect">
         <option disabled value="">-- Select a size --</option>
-        <option v-for="size in sizes" :key="size" :value="size">{{ size }}</option>
+        <option v-for="size in sizes" :key="size">{{ size }}</option>
       </select>
 
-      <select class="input effect" :value="selectedEffect" @change="emit('update:selectedEffect', $event.target.value)">
+      <select v-model="spellEffect.effect" class="input effect">
         <option disabled value="">-- Select an effect --</option>
-        <option v-for="effect in effects" :key="effect" :value="effect">{{ effect }}</option>
+        <option v-for="effect in effects" :key="effect">{{ effect }}</option>
       </select>
 
-      <select class="input effect" :value="selectedPath" @change="emit('update:selectedPath', $event.target.value)">
+      <select v-model="spellEffect.path" class="input effect">
         <option disabled value="">-- Select a path --</option>
-        <option v-for="path in paths" :key="path" :value="path">{{ path }}</option>
+        <option v-for="path in paths" :key="path">{{ path }}</option>
       </select>
+
     </div>
   </div>
 </template>
+
 
 <style scoped>
 .input-container {
@@ -64,6 +68,7 @@ const emit = defineEmits(['update:name', 'update:selectedEffect', 'update:select
   flex-direction: row;
   align-items: center;
   gap: 1em;
+  margin-top: 1em;
 }
 
 .input {
