@@ -11,7 +11,7 @@
 header {
   height: 5em;
   width: 100vw;
-  background-color: #222831;
+  background-color: var(--Color2);
   box-sizing: border-box;
 }
 
@@ -19,6 +19,5 @@ header {
   font-size: 1.5em;
   padding-top: 1.5em;
   padding-left: 1.5em;
-  color: #DFD0B8;
 }
 </style>

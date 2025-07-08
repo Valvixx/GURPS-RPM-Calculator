@@ -5,19 +5,19 @@ import InputFields from './components/InputFields.vue'
 import MarkdownBoard from './components/MarkdownBoard.vue'
 
 const name = ref('')
-const selectedEffect = ref('')
-const selectedPath = ref('')
-const selectedSize = ref('')
 
-const effects = ['Sense', 'Strengthen', 'Restore', 'Control', 'Destroy', 'Create', 'Transform']
-const paths = ['Body', 'Chance', 'Crossroads', 'Energy', 'Magic', 'Matter', 'Mind', 'Spirit', 'Undead', 'Unexistence']
-const sizes = ['Greater', 'Lesser']
+const inputFieldsRef = ref()
 
 const energy = computed(() => {
+  if (!inputFieldsRef.value || typeof inputFieldsRef.value.getSpellEffects !== 'function') {
+    return 0
+  }
   let base = 0
   let greaterCount = 0
 
-  for (const eff of spellEffects.value) {
+  const spellEffects = inputFieldsRef.value.getSpellEffects()
+
+  for (const eff of spellEffects) {
     switch (eff.effect) {
       case 'Sense': base += 2; break
       case 'Strengthen': base += 3; break
@@ -36,26 +36,37 @@ const energy = computed(() => {
   return base * multiplier
 })
 
+const markdownPreview = computed(() => {
+  const spellEffects = inputFieldsRef.value?.getSpellEffects?.() || []
 
-const markdownPreview = computed(() =>
-    `## Spell: ${name.value || '[No Name]'}\n` +
-    `**Path:** ${selectedSize.value || '[None Size]'} ${selectedEffect.value || '[None Effect]'} ${selectedPath.value || '[None Path]'}\n` +
-    `**Energy:** ${energy.value || '[None Energy]'}\n`
-)
+  const effectsMarkdown = spellEffects.map((eff) => {
+    const size = eff.size || '[No Size]'
+    const effect = eff.effect || '[No Effect]'
+    const path = eff.path || '[No Path]'
+    return `- ${size} ${effect} ${path}`
+  }).join('\n')
 
-function copyMarkdown() {
-  navigator.clipboard.writeText(markdownPreview.value)
-      .then(() => console.log('Copied to clipboard'))
-      .catch(err => console.error('Failed to copy:', err))
-}
+  return `## Spell: ${name.value || '[No Name]'}\n` +
+      `**Effects:**\n${effectsMarkdown || '- [No Effects]'}\n` +
+      `**Energy:** ${energy.value || '[None Energy]'}\n`
+})
 
-const spellEffects = ref([
-  { size: '', effect: '', path: '' }  // начальная группа
-])
+const jsonPreview = computed(() => {
+  const spellEffects = inputFieldsRef.value?.getSpellEffects?.() || []
 
-function addSpellEffect() {
-  spellEffects.value.push({ size: '', effect: '', path: '' })
-}
+  return {
+    name: name.value || null,
+    effects: spellEffects.map((eff) => ({
+      size: eff.size || null,
+      effect: eff.effect || null,
+      path: eff.path || null,
+    })),
+    energy: energy.value
+  }
+})
+
+
+
 
 </script>
 
@@ -64,27 +75,22 @@ function addSpellEffect() {
   <div class="wrapper">
     <div class="content">
       <InputFields
-          v-model:name="name"
-          :spellEffects="spellEffects"
-          :effects="effects"
-          :paths="paths"
-          :sizes="sizes"
+      ref="inputFieldsRef"
+      v-model="name"
       />
+
       <MarkdownBoard
           :markdownPreview="markdownPreview"
-          @copy="copyMarkdown"
+          :jsonPreview="jsonPreview"
       />
     </div>
-    <button class="add-effect-btn" @click="addSpellEffect">Add Spell Effect</button>
   </div>
-
-
 </template>
 
 <style>
 * {
   box-sizing: border-box;
-  color: #DFD0B8;
+  color: var(--TextColor);
 }
 
 .wrapper {
@@ -101,16 +107,4 @@ function addSpellEffect() {
   gap: 3em;
 }
 
-.add-effect-btn {
-  width: 50em;
-  height: 2em;
-  margin-left: 1em;
-  padding: 0 2em;
-  font-size: 1em;
-  font-family: inherit;
-  text-align: center;
-  border: 3px solid #948979;
-  background-color: #222831;
-  border-radius: 0.5em;
-}
 </style>

@@ -1,17 +1,44 @@
 <script setup>
+import { ref, computed } from 'vue'
 import ClipboardIcon from '../assets/clipboard.svg'
-defineProps({
-  markdownPreview: String
+const props = defineProps({
+  markdownPreview: String,
+  jsonPreview: Object
 })
-const emit = defineEmits(['copy'])
+const viewMode = ref('markdown')
+
+const currentPreview = computed(() => {
+  return viewMode.value === 'markdown'
+      ? props.markdownPreview
+      : JSON.stringify(props.jsonPreview, null, 2)
+})
+
+function copyCurrent() {
+  navigator.clipboard.writeText(currentPreview.value)
+      .catch(err => console.error('Copy failed:', err))
+}
 </script>
 
 <template>
   <div class="markdown-preview">
-    <h3>Markdown Spell</h3>
+    <div class="switcher-group">
+      <button
+          id="md"
+          class="switcher"
+          :class="{ active: viewMode === 'markdown' }"
+          @click="viewMode = 'markdown'"
+      >Markdown</button>
+      <button
+          id="json"
+          class="switcher"
+          :class="{ active: viewMode === 'json' }"
+          @click="viewMode = 'json'"
+      >JSON</button>
+    </div>
+
     <div class="pre-wrapper">
-      <pre>{{ markdownPreview }}</pre>
-      <button @click="emit('copy')" id="copy-button">
+      <pre>{{ currentPreview }}</pre>
+      <button @click="copyCurrent" id="copy-button">
         <ClipboardIcon class="icon" />
       </button>
     </div>
@@ -21,10 +48,9 @@ const emit = defineEmits(['copy'])
 <style scoped>
 .markdown-preview {
   width: 40em;
-  background: #1f1f1f;
-  color: #dfd0b8;
+  background: var(--Color2);
   padding: 1em;
-  border: 3px solid #948979;
+  border: 3px solid var(--Color3);
   border-radius: 0.5em;
 }
 
@@ -34,10 +60,10 @@ const emit = defineEmits(['copy'])
 
 .pre-wrapper pre {
   white-space: pre-wrap;
-  background-color: #2e2e2e;
+  background-color: var(--Color5);
   padding: 1em;
   border-radius: 0.5em;
-  min-height: 10em;
+  min-height: 20em;
   line-height: 1.5em;
 }
 
@@ -52,7 +78,6 @@ const emit = defineEmits(['copy'])
   right: 0.25em;
   background: transparent;
   border: none;
-  color: #dfd0b8;
   cursor: pointer;
   font-size: 1.2em;
   padding: 0.2em;
@@ -62,5 +87,38 @@ const emit = defineEmits(['copy'])
 
 #copy-button:hover {
   opacity: 1;
+}
+
+.switcher {
+  background-color: var(--Color5);
+  border: 2px solid var(--Color3);
+  width: 8em;
+}
+
+#md {
+  border-right: 0;
+  border-radius: 0.5em 0 0 0.5em;
+}
+
+#json{
+  border-left: 0;
+  border-radius: 0 0.5em 0.5em 0;
+}
+
+.switcher:hover{
+  cursor: pointer;
+  border: 2px solid var(--Color4);
+  #json{border: 2px solid var(--Color4) }
+}
+
+.switcher-group {
+  display: flex;
+  margin-bottom: 1em;
+}
+
+.switcher.active {
+  border-color: var(--Color4);
+  font-weight: bold;
+  background-color: var(--Color3);
 }
 </style>
