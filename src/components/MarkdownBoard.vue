@@ -1,17 +1,64 @@
 <script setup>
 import { ref, computed } from 'vue'
 import ClipboardIcon from '../assets/clipboard.svg'
+
 const props = defineProps({
-  markdownPreview: String,
-  jsonPreview: Object
+  name: String,
+  spellEffects: Array
 })
+
 const viewMode = ref('markdown')
 
-const currentPreview = computed(() => {
-  return viewMode.value === 'markdown'
-      ? props.markdownPreview
-      : JSON.stringify(props.jsonPreview, null, 2)
+const energy = computed(() => {
+  let base = 0
+  let greaterCount = 0
+
+  for (const eff of props.spellEffects) {
+    switch (eff.effect) {
+      case 'Sense': base += 2; break
+      case 'Strengthen': base += 3; break
+      case 'Restore': base += 4; break
+      case 'Control': base += 5; break
+      case 'Destroy': base += 5; break
+      case 'Create': base += 6; break
+      case 'Transform': base += 8; break
+    }
+    if (eff.size === 'Greater') {
+      greaterCount++
+    }
+  }
+
+  return base * (1 + greaterCount * 2)
 })
+
+const markdownPreview = computed(() => {
+  const effectsMarkdown = props.spellEffects.map((eff) => {
+    const size = eff.size || '[No Size]'
+    const effect = eff.effect || '[No Effect]'
+    const path = eff.path || '[No Path]'
+    return `- ${size} ${effect} ${path}`
+  }).join('\n')
+
+  return `## Spell: ${props.name || '[No Name]'}\n` +
+      `**Effects:**\n${effectsMarkdown || '- [No Effects]'}\n` +
+      `**Energy:** ${energy.value || '[None Energy]'}\n`
+})
+
+const jsonPreview = computed(() => ({
+  name: props.name || null,
+  effects: props.spellEffects.map((eff) => ({
+    size: eff.size || null,
+    effect: eff.effect || null,
+    path: eff.path || null,
+  })),
+  energy: energy.value
+}))
+
+const currentPreview = computed(() =>
+    viewMode.value === 'markdown'
+        ? markdownPreview.value
+        : JSON.stringify(jsonPreview.value, null, 2)
+)
 
 function copyCurrent() {
   navigator.clipboard.writeText(currentPreview.value)

@@ -1,32 +1,41 @@
 <script setup>
 import { ref, watch, defineProps, defineEmits } from 'vue'
 
-const effects = ['Sense', 'Strengthen', 'Restore', 'Control', 'Destroy', 'Create', 'Transform']
-const paths = ['Body', 'Chance', 'Crossroads', 'Energy', 'Magic', 'Matter', 'Mind', 'Spirit', 'Undead', 'Unexistence']
-const sizes = ['Greater', 'Lesser']
+const props = defineProps({
+  modelValue: String
+})
+const emit = defineEmits(['update:modelValue', 'update:spellEffects'])
 
-
+const name = ref(props.modelValue)
 const spellEffects = ref([
   { size: '', effect: '', path: '' },
   { size: '', effect: '', path: '' }
 ])
 
-function getSpellEffects(){
-  return spellEffects.value
-}
+const spellDamage = ref([
+  {intValue: '0', addValue: '0', type: '', spellModifiers: [] },
+])
 
-function getName(){
-  return name.value
-}
 
-defineExpose({
-  getSpellEffects,
-  getName
+const effects = ['Sense', 'Strengthen', 'Restore', 'Control', 'Destroy', 'Create', 'Transform']
+const paths = ['Body', 'Chance', 'Crossroads', 'Energy', 'Magic', 'Matter', 'Mind', 'Spirit', 'Undead', 'Unexistence']
+const sizes = ['Greater', 'Lesser']
+const damageTypes = ['cr', 'pi', 'cut', 'burn', 'pi-', 'pi+', 'pi++', 'fatigue', 'healing']
+
+watch(() => props.modelValue, (newVal) => {
+  name.value = newVal
 })
 
+watch(name, (newVal) => {
+  emit('update:modelValue', newVal)
+})
+
+watch(spellEffects, (newVal) => {
+  emit('update:spellEffects', newVal)
+}, { deep: true })
 
 function addSpellEffect() {
-  if (spellEffects.value.length <=5) {
+  if (spellEffects.value.length <= 5) {
     spellEffects.value.push({ size: '', effect: '', path: '' })
   }
 }
@@ -34,25 +43,34 @@ function deleteSpellEffect() {
   spellEffects.value.pop()
 }
 
-// ---
+function addDamage() {
+  spellDamage.value.push({
+    intValue: '0',
+    addValue: '0',
+    type: '',
+    spellModifiers: []
+  })
+}
 
+function deleteDamage() {
+  spellDamage.value.pop()
+}
 
-const props = defineProps({
-  modelValue: String // это для v-model
-})
-const emit = defineEmits(['update:modelValue'])
+function addModifier(index) {
+  spellDamage.value[index].spellModifiers.push({ name: '', value: '' })
+}
+function deleteModifier(index) {
+  spellDamage.value[index].spellModifiers.pop()
+}
 
-const name = ref(props.modelValue)
+function onWheel(event, obj, key, step = 1) {
+  event.preventDefault() // предотвращает прокрутку страницы
 
-// Слежение за внешним изменением
-watch(() => props.modelValue, (newVal) => {
-  name.value = newVal
-})
+  const delta = Math.sign(event.deltaY) * step
+  const current = parseInt(obj[key]) || 0
+  obj[key] = (current - delta).toString()
+}
 
-// Слежение за внутренним вводом
-watch(name, (newVal) => {
-  emit('update:modelValue', newVal)
-})
 </script>
 
 <template>
@@ -67,9 +85,13 @@ watch(name, (newVal) => {
     />
 
     <div class="head-3">
-      <h3 >Effects</h3>
+      <h3>Effects</h3>
     </div>
 
+    <div class="buttonWrapper">
+      <button class="add-effect-btn" @click="deleteSpellEffect">Delete Spell Effect</button>
+      <button class="add-effect-btn" @click="addSpellEffect">Add Spell Effect</button>
+    </div>
 
     <div
         v-for="(spellEffect, index) in spellEffects"
@@ -91,15 +113,38 @@ watch(name, (newVal) => {
         <option v-for="path in paths" :key="path">{{ path }}</option>
       </select>
     </div>
-    <div class="buttonWrapper">
-      <button class="add-effect-btn" @click="deleteSpellEffect">Delete Spell Effect</button>
-      <button class="add-effect-btn" @click="addSpellEffect">Add Spell Effect</button>
+
+    <div class="head-3">
+      <h3>Damage or Healing</h3>
     </div>
+
+    <div class="buttonWrapper">
+      <button class="add-effect-btn" @click="deleteDamage">Delete Damage or Healing</button>
+      <button class="add-effect-btn" @click="addDamage">Add Damage or Healing</button>
+    </div>
+
+    <div v-for="(Damage, index) in spellDamage" :key="index" class="damage-container">
+      <div class="damage-subcontainer">
+        <input @wheel="onWheel($event, Damage, 'intValue')" v-model="Damage.intValue" type="number" class="damage">
+        <!--      <h3 class="letter">d+</h3>-->
+        <input @wheel="onWheel($event, Damage, 'addValue')" v-model="Damage.addValue" type="number" class="damage">
+        <select v-model="Damage.type" class="input effect">
+          <option disabled value="">-- Select a type of damage --</option>
+          <option v-for="type in damageTypes" :key="type">{{type}}</option>
+        </select>
+        <button @click="deleteModifier(index)" class="modifier-btn"> - Modifier</button>
+        <button @click="addModifier(index)" class="modifier-btn"> + Modifier</button>
+      </div>
+
+      <div v-for="(modifier, index2) in Damage.spellModifiers" :key = "index2" class="modifierWrapper">
+        <input v-model="modifier.name" class="input"  id="modifier-name" placeholder="Modifier Name">
+        <input @wheel="onWheel($event, modifier, 'value', 5)" v-model="modifier.value" type="number" class="input"  id="modifier-value" placeholder="Modifier Value (Percents)" step="5" >
+      </div>
+    </div>
+
+
   </div>
 </template>
-
-
-
 
 <style scoped>
 .input-container {
@@ -176,5 +221,64 @@ watch(name, (newVal) => {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.damage-container{
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.damage-subcontainer{
+  display: flex;
+  flex-direction: row;
+  margin-top: 1em;
+  gap: 1em;
+}
+
+.damage{
+  height: 2em;
+  width: 7.5em;
+  font-size: 1em;
+  font-family: inherit;
+  text-align: center;
+  border: 3px solid var(--Color3);
+  background-color: var(--Color2);
+  border-radius: 0.5em;
+}
+
+.damage:hover{
+  border-color: var(--Color4);
+}
+
+.modifier-btn{
+  width: 7.5em;
+  font-size: 1em;
+  font-family: inherit;
+  text-align: center;
+  border: 3px solid var(--Color3);
+  background-color: var(--Color2);
+  border-radius: 0.5em;
+}
+
+.modifier-btn:hover{
+  cursor: pointer;
+  border-color: var(--Color4);
+}
+
+.modifierWrapper{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1em;
+}
+
+#modifier-name {
+  margin-left: 8.5em;
+  width: 24.5em;
+}
+
+#modifier-value {
+  width: 16em;
 }
 </style>
