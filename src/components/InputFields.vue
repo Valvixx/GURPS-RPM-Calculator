@@ -95,8 +95,8 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
     </div>
 
     <div class="buttonWrapper">
-      <button class="add-effect-btn" @click="deleteSpellEffect">Delete Spell Effect</button>
-      <button class="add-effect-btn" @click="addSpellEffect">Add Spell Effect</button>
+      <button class="add-effect-btn" @click="deleteSpellEffect">Delete a Spell Effect</button>
+      <button class="add-effect-btn" @click="addSpellEffect">Add a Spell Effect</button>
     </div>
 
     <div
@@ -131,20 +131,45 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
 
     <div v-for="(Damage, index) in spellDamage" :key="index" class="damage-container">
       <div class="damage-subcontainer">
-        <input @wheel="onWheel($event, Damage, 'intValue', 1, 0)" v-model="Damage.intValue" type="number" placeholder="Dice dmg" class="damage" min="0">
-        <!--      <h3 class="letter">d+</h3>-->
-        <input @wheel="onWheel($event, Damage, 'addValue')" v-model="Damage.addValue" type="number" placeholder="Flat dmg" class="damage">
-        <select v-model="Damage.type" class="input effect">
-          <option disabled value="">-- Select a type of damage --</option>
+        <input @wheel="onWheel($event, Damage, 'intValue', 1, 0)"
+               v-model="Damage.intValue"
+               type="number"
+               placeholder="Dice dmg"
+               class="damage"
+               min="0">
+        <input @wheel="onWheel($event, Damage, 'addValue')"
+               v-model="Damage.addValue"
+               type="number"
+               placeholder="Flat dmg"
+               class="damage">
+        <select v-model="Damage.type" class="input dmgType">
+          <option disabled value="">--Category--</option>
           <option v-for="type in damageTypes" :key="type">{{type}}</option>
         </select>
-        <button @click="deleteModifier(index)" class="modifier-btn"> - Modifier</button>
-        <button @click="addModifier(index)" class="modifier-btn"> + Modifier</button>
+        <select v-model="Damage.type" class="input dmgType">
+          <option disabled value="">--Type--</option>
+          <option v-for="type in damageTypes" :key="type">{{type}}</option>
+        </select>
+        <div class="checkboxWrapper">
+          <input type="checkbox" class="checkbox">
+          <div class="subtext">ex</div>
+        </div>
+        <button @click="deleteModifier(index)" class="modifier-btn"> - Mod</button>
+        <button @click="addModifier(index)" class="modifier-btn"> + Mod</button>
       </div>
 
       <div v-for="(modifier, index2) in Damage.spellModifiers" :key = "index2" class="modifierWrapper">
-        <input @wheel="onWheel($event, modifier, 'value', 5)" v-model="modifier.value" type="number" class="input"  id="modifier-value" placeholder="Value (%)" step="5" >
-        <input v-model="modifier.name" class="input"  id="modifier-name" placeholder="Modifier Name">
+        <input @wheel="onWheel($event, modifier, 'value', 5)"
+               v-model="modifier.value"
+               type="number"
+               class="input"
+               id="modifier-value"
+               placeholder="Value (%)"
+               step="5">
+        <input v-model="modifier.name"
+               class="input"
+               id="modifier-name"
+               placeholder="Modifier Name">
       </div>
     </div>
 
@@ -153,15 +178,15 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
     </div>
 
     <div class="buttonWrapper">
-      <button class="add-effect-btn" @click="deleteDamage">Delete Trait</button>
-      <button class="add-effect-btn" @click="addDamage">Add Trait</button>
+      <button class="add-effect-btn" @click="deleteDamage">Delete a Trait</button>
+      <button class="add-effect-btn" @click="addDamage">Add a Trait</button>
     </div>
 
     <div class="traits-container">
       <input class="input" id="trait-value" type="number" placeholder="Value (pts)">
       <input class="input" id="trait-name" placeholder="Trait Name">
-      <button @click="deleteModifier(index)" class="modifier-btn"> - Modifier</button>
-      <button @click="addModifier(index)" class="modifier-btn"> + Modifier</button>
+      <button @click="deleteModifier(index)" class="modifier-btn"> - Mod</button>
+      <button @click="addModifier(index)" class="modifier-btn"> + Mod</button>
     </div>
 
     <div class="head-3">
@@ -172,14 +197,13 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
       <h4>Bestows a Bonus or Penalty</h4>
     </div>
     <div class="bestows-btn-wrapper">
-      <button class="bestows-btn" @click="deleteDamage">Delete a Bonus or Penalty</button>
-      <button class="bestows-btn" @click="addDamage">Add a Bonus or Penalty</button>
+      <button class="bestows-btn" @click="deleteDamage">Delete a Bonus/Penalty</button>
+      <button class="bestows-btn" @click="addDamage">Add a Bonus/Penalty</button>
     </div>
 
     <div class="head-3">
       <h3>Additional Modifiers</h3>
     </div>
-
 
   </div>
 </template>
@@ -226,6 +250,11 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
 .input.effect:hover {
   cursor: pointer;
   border-color: var(--Color4);
+}
+
+.input.dmgType{
+  height: 2em;
+  width: 7.5em;
 }
 
 .buttonWrapper {
@@ -303,7 +332,7 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
 }
 
 .modifier-btn{
-  width: 7.5em;
+  width: 5em;
   font-size: 1em;
   font-family: inherit;
   text-align: center;
@@ -341,7 +370,7 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
 }
 
 #trait-name{
-  width: 24.5em;
+  width: 30em;
 }
 
 #trait-value{
@@ -350,7 +379,7 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
 
 .bestows-btn{
   width: 11.5em;
-  height: 3.5em;
+  height: 2em;
   margin-top: 1em;
   font-size: 1em;
   font-family: inherit;
@@ -372,4 +401,38 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
   gap: 1em;
 }
 
+.checkbox{
+  height: 1.25em;
+  width: 1.25em;
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+
+  border: 2px solid var(--Color3);
+  border-radius: 50%;
+  background-color: var(--Color2);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.checkboxWrapper{
+  width: 4em;
+  border: 3px solid var(--Color3);
+  border-radius: 0.5em;
+  background-color: var(--Color2);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.subtext{
+  margin-left: 0.25em;
+  font-size: 1em;
+}
+
+.checkbox:checked {
+  background-color: var(--Color4);
+  border-color: var(--Color3);
+}
 </style>
