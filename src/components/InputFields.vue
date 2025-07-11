@@ -1,19 +1,43 @@
 <script setup>
 import {defineEmits, defineProps, ref, watch} from 'vue'
+import SpellDuration from './SpellDuration.vue'
+import SubjectWeight from './SubjectWeight.vue'
+import SpellDistance from './SpellDistance.vue'
+import LongDistance from './LongDistance.vue'
+import SummonedModifier from "./SummonedModifier.vue";
 
 const props = defineProps({
   modelValue: String
 })
+
 const emit = defineEmits(['update:modelValue', 'update:spellEffects'])
 
 const name = ref(props.modelValue)
+
+const duration = ref('')
+
+const weight = ref(0)
+
+const distance = ref(0)
+const longDistance = ref(0)
+
+const summonedModifier = ref(0)
+
 const spellEffects = ref([
   { size: '', effect: '', path: '' },
   { size: '', effect: '', path: '' }
 ])
 
 const spellDamage = ref([
-  {intValue: '', addValue: '', type: '', spellModifiers: [] },
+  {intValue: '', addValue: '', category:'', type: '', spellModifiers: [] },
+])
+
+const spellTraits = ref([
+  {name:'', value:'', traitModifiers: []}
+])
+
+const spellBonuses = ref([
+    {value:'', category:'', subject:''}
 ])
 
 
@@ -21,6 +45,8 @@ const effects = ['Sense', 'Strengthen', 'Restore', 'Control', 'Destroy', 'Create
 const paths = ['Body', 'Chance', 'Crossroads', 'Energy', 'Magic', 'Matter', 'Mind', 'Spirit', 'Undead', 'Unexistence']
 const sizes = ['Greater', 'Lesser']
 const damageTypes = ['cr', 'pi', 'cut', 'burn', 'pi-', 'pi+', 'pi++', 'fatigue', 'healing']
+const damageCategories = ['Internal', 'External']
+const bonusCategories = ['Broad', 'Moderate', 'Narrow']
 
 watch(() => props.modelValue, (newVal) => {
   name.value = newVal
@@ -47,6 +73,7 @@ function addDamage() {
   spellDamage.value.push({
     intValue: '',
     addValue: '',
+    category:'',
     type: '',
     spellModifiers: []
   })
@@ -61,6 +88,28 @@ function addModifier(index) {
 }
 function deleteModifier(index) {
   spellDamage.value[index].spellModifiers.pop()
+}
+
+function addTraitModifier(index) {
+  spellTraits.value[index].traitModifiers.push({ name: '', value: '' })
+}
+function deleteTraitModifier(index) {
+  spellTraits.value[index].traitModifiers.pop()
+}
+
+function addTrait() {
+  spellTraits.value.push({name: '', value: '', traitModifiers: []})
+}
+
+function deleteTrait() {
+  spellTraits.value.pop()
+}
+
+function addBonus() {
+  spellBonuses.value.push({value:'', category:'', subject:''})
+}
+function deleteBonus() {
+  spellBonuses.value.pop()
 }
 
 function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
@@ -89,6 +138,8 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
         maxlength="65"
         v-model="name"
     />
+
+    <!-- --EFFECTS-- -->
 
     <div class="head-3">
       <h3>Effects</h3>
@@ -120,6 +171,8 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
       </select>
     </div>
 
+    <!-- --DAMAGE-- -->
+
     <div class="head-3">
       <h3>Damage or Healing</h3>
     </div>
@@ -142,9 +195,9 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
                type="number"
                placeholder="Flat dmg"
                class="damage">
-        <select v-model="Damage.type" class="input dmgType">
+        <select v-model="Damage.category" class="input dmgType">
           <option disabled value="">--Category--</option>
-          <option v-for="type in damageTypes" :key="type">{{type}}</option>
+          <option v-for="category in damageCategories" :key="category">{{category}}</option>
         </select>
         <select v-model="Damage.type" class="input dmgType">
           <option disabled value="">--Type--</option>
@@ -173,33 +226,97 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
       </div>
     </div>
 
+    <!-- --TRAITS-- -->
+
     <div class="head-3">
       <h3>Traits</h3>
     </div>
 
     <div class="buttonWrapper">
-      <button class="add-effect-btn" @click="deleteDamage">Delete a Trait</button>
-      <button class="add-effect-btn" @click="addDamage">Add a Trait</button>
+      <button class="add-effect-btn" @click="deleteTrait">Delete a Trait</button>
+      <button class="add-effect-btn" @click="addTrait">Add a Trait</button>
     </div>
 
-    <div class="traits-container">
-      <input class="input" id="trait-value" type="number" placeholder="Value (pts)">
-      <input class="input" id="trait-name" placeholder="Trait Name">
-      <button @click="deleteModifier(index)" class="modifier-btn"> - Mod</button>
-      <button @click="addModifier(index)" class="modifier-btn"> + Mod</button>
+    <div v-for="(Trait, index) in spellTraits" class="traits-container">
+      <div class="traits-subcontainer">
+        <input v-model="Trait.value" class="input" id="trait-value" type="number" placeholder="Value (pts)">
+        <input v-model="Trait.name" class="input" id="trait-name" placeholder="Trait Name">
+        <button @click="deleteTraitModifier(index)" class="modifier-btn"> - Mod</button>
+        <button @click="addTraitModifier(index)" class="modifier-btn"> + Mod</button>
+      </div>
+
+      <div v-for="(modifier, index2) in Trait.traitModifiers" :key = "index2" class="modifierWrapper">
+        <input @wheel="onWheel($event, modifier, 'value', 5)"
+               v-model="modifier.value"
+               type="number"
+               class="input"
+               id="modifier-value"
+               placeholder="Value (%)"
+               step="5">
+        <input v-model="modifier.name"
+               class="input"
+               id="modifier-name"
+               placeholder="Modifier Name">
+      </div>
     </div>
+
+    <!-- --FEATURES-- -->
 
     <div class="head-3">
       <h3>Spell Features</h3>
     </div>
 
-    <div class="head-4">
-      <h4>Bestows a Bonus or Penalty</h4>
+
+    <!-- --BESTOWS A BONUS-- -->
+    <div class="features-wrapper">
+      <div class="bonuses-container">
+        <div class="head-4">
+          <h4>Bestows a Bonus or Penalty</h4>
+        </div>
+        <div class="bestows-btn-wrapper">
+          <button class="bestows-btn" @click="deleteBonus">Delete a Bonus/Penalty</button>
+          <button class="bestows-btn" @click="addBonus">Add a Bonus/Penalty</button>
+        </div>
+
+        <div v-for="(Bonus, index) in spellBonuses" :key="index" class="effects-container">
+          <input v-model="Bonus.value" class="input" id="trait-value" type="number" placeholder="Value(+1/-1)">
+          <select v-model="Bonus.category" class="input dmgType" style="width: 7em">
+            <option disabled value="">- Category -</option>
+            <option v-for="category in bonusCategories" :key="category">{{category}}</option>
+          </select>
+          <input v-model="Bonus.subject" class="input" id="trait-value" placeholder="Subject(s)">
+        </div>
+
+        <div style="" class="head-4">
+          <h4 style="">LongDistance</h4>
+        </div>
+        <LongDistance v-model="longDistance"></LongDistance>
+        <div style="" class="head-4">
+          <h4 style="">Summoned or Controlled</h4>
+        </div>
+        <SummonedModifier v-model="summonedModifier"></SummonedModifier>
+
+      </div>
+      <div>
+        <div style="margin-left: 0.5em" class="head-4">
+          <h4 style="">Duration</h4>
+        </div>
+          <SpellDuration v-model="duration" />
+        <div style="margin-left: 0.5em" class="head-4">
+          <h4 style="">Weight</h4>
+        </div>
+          <SubjectWeight v-model="weight"></SubjectWeight>
+        <div style="margin-left: 0.5em" class="head-4">
+          <h4 style="">Distance</h4>
+        </div>
+          <SpellDistance v-model="distance"></SpellDistance>
+
+
+      </div>
+
     </div>
-    <div class="bestows-btn-wrapper">
-      <button class="bestows-btn" @click="deleteDamage">Delete a Bonus/Penalty</button>
-      <button class="bestows-btn" @click="addDamage">Add a Bonus/Penalty</button>
-    </div>
+
+    <!-- --ADDITIONAL MODIFIERS-- -->
 
     <div class="head-3">
       <h3>Additional Modifiers</h3>
@@ -234,6 +351,7 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
 }
 
 .input {
+  height: 2em;
   font-size: 1em;
   font-family: inherit;
   text-align: center;
@@ -332,6 +450,7 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
 }
 
 .modifier-btn{
+  height: 2em;
   width: 5em;
   font-size: 1em;
   font-family: inherit;
@@ -364,17 +483,25 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
 
 .traits-container {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   margin-top: 1em;
   gap: 1em;
 }
 
+.traits-subcontainer{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1em;
+
+}
+
 #trait-name{
-  width: 30em;
+  width: 29.5em;
 }
 
 #trait-value{
-  width: 7em;
+  width: 7.5em;
 }
 
 .bestows-btn{
@@ -434,5 +561,11 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
 .checkbox:checked {
   background-color: var(--Color4);
   border-color: var(--Color3);
+}
+
+.features-wrapper{
+  display: flex;
+  flex-direction: row;
+  gap: 1.5em;
 }
 </style>
