@@ -1,9 +1,21 @@
 <script setup>
-import { ref, watch } from 'vue'
+import {computed, ref, watch} from 'vue'
+import { useEnergyStore} from '../stores/energy.js'
+import {useFieldsStore} from "../stores/fields.js";
 
-const durationValue = ref(0)
-const durationUnit = ref('minutes')
-const addedEnergy = ref(0)
+const energyStore = useEnergyStore()
+const fieldsStore = useFieldsStore()
+
+const durationValue = computed({
+  get: () => fieldsStore.durationValue,
+  set: (val) => fieldsStore.durationValue = val
+})
+
+const durationUnit = computed({
+  get: () => fieldsStore.durationType,
+  set: (val) => fieldsStore.durationType = val
+})
+
 
 const unitToMinutes = {
   minutes: 1,
@@ -15,38 +27,42 @@ const unitToMinutes = {
 }
 
 const thresholds = [
-  { min: 0, energy: 0 },
-  { min: 10, energy: 1 },
-  { min: 30, energy: 2 },
-  { min: 60, energy: 3 },
-  { min: 180, energy: 4 },
-  { min: 360, energy: 5 },
-  { min: 720, energy: 6 },
-  { min: 1440, energy: 7 },
-  { min: 4320, energy: 8 },
-  { min: 10080, energy: 9 },
-  { min: 20160, energy: 10 },
-  { min: 43200, energy: 11 },
-  { min: 129600, energy: 12 } // +1 month
+  { max: 10, energy: 1 },
+  { max: 30, energy: 2 },
+  { max: 60, energy: 3 },
+  { max: 180, energy: 4 },
+  { max: 360, energy: 5 },
+  { max: 720, energy: 6 },
+  { max: 1440, energy: 7 },
+  { max: 4320, energy: 8 },
+  { max: 10080, energy: 9 },
+  { max: 20160, energy: 10 },
+  { max: 43200, energy: 11 }
 ]
 
 function calculateEnergy(minutes) {
-  if (minutes > unitToMinutes.years) {
-    const years = Math.floor(minutes / unitToMinutes.years)
+  const oneMonth = unitToMinutes.months
+  const oneYear = unitToMinutes.years
+
+  if (minutes >= oneYear) {
+    const years = Math.ceil(minutes / oneYear)
     return years + 21
   }
 
-  for (let i = thresholds.length - 1; i >= 0; i--) {
-    if (minutes >= thresholds[i].min) {
+  for (let i = 0; i < thresholds.length; i++) {
+    if (minutes <= thresholds[i].max) {
       return thresholds[i].energy
     }
   }
-  return 0
+
+  const monthsOver = Math.ceil((minutes - oneMonth) / oneMonth)
+  return 11 + monthsOver
 }
 
 watch([durationValue, durationUnit], () => {
   const minutes = durationValue.value * unitToMinutes[durationUnit.value]
-  addedEnergy.value = calculateEnergy(minutes)
+  const energy = minutes <= 0 ? 0 : calculateEnergy(minutes)
+  energyStore.setDuration(energy)
 })
 </script>
 
@@ -68,11 +84,10 @@ watch([durationValue, durationUnit], () => {
         <option value="months">Months</option>
         <option value="years">Years</option>
       </select>
-
-
     </div>
+
     <div class="output">
-      <strong>Energy: +{{ addedEnergy }}</strong>
+      <strong>Energy: +{{ energyStore.duration }}</strong>
     </div>
   </div>
 </template>
@@ -103,6 +118,10 @@ watch([durationValue, durationUnit], () => {
 }
 .input:hover, .select:hover {
   border-color: var(--Color4);
+}
+
+.select:hover{
+  cursor: pointer;
 }
 
 .output{

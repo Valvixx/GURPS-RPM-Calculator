@@ -1,10 +1,21 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { useEnergyStore} from '../stores/energy.js'
+import {useFieldsStore} from "../stores/fields.js";
 
-const distanceValue = ref(0)
-const distanceUnit = ref('yards')
+const energyStore = useEnergyStore()
+const fieldsStore = useFieldsStore()
 
-// Таблица соответствий (ярды → энергия)
+const distanceValue = computed({
+  get: () => fieldsStore.distanceValue,
+  set: (val) => fieldsStore.distanceValue = val
+})
+
+const distanceUnit = computed({
+  get: () => fieldsStore.distanceType,
+  set: (val) => fieldsStore.distanceType = val
+})
+
 const thresholds = [
   { maxYards: 2, energy: 0 },
   { maxYards: 3, energy: 1 },
@@ -39,10 +50,10 @@ const thresholds = [
   { maxYards: 200000, energy: 30 }
 ]
 
-const calculatedEnergy = computed(() => {
+energyStore.distance = computed(() => {
   let yards = distanceValue.value
   if (distanceUnit.value === 'miles') {
-    yards *= 1760
+    yards *= 2000
   }
 
   for (let i = 0; i < thresholds.length; i++) {
@@ -75,7 +86,7 @@ const calculatedEnergy = computed(() => {
     </div>
 
     <div class="output">
-      <strong>Energy: +{{ calculatedEnergy }}</strong>
+      <strong>Energy: +{{ energyStore.distance }}</strong>
     </div>
   </div>
 </template>
@@ -96,12 +107,21 @@ const calculatedEnergy = computed(() => {
 }
 
 .input, .select {
+  text-align: center;
   height: 2em;
   font-size: 1em;
-  border: 2px solid var(--Color3);
+  border: 3px solid var(--Color3);
   background-color: var(--Color2);
-  border-radius: 0.4em;
+  border-radius: 0.5em;
   width: 100%;
+}
+
+.input:hover, .select:hover {
+  border-color: var(--Color4);
+}
+
+.select:hover{
+  cursor: pointer;
 }
 
 .output{

@@ -5,6 +5,12 @@ import SubjectWeight from './SubjectWeight.vue'
 import SpellDistance from './SpellDistance.vue'
 import LongDistance from './LongDistance.vue'
 import SummonedModifier from "./SummonedModifier.vue";
+import { useEnergyStore} from '../stores/energy.js'
+import {useFieldsStore} from "../stores/fields.js";
+
+const energyStore = useEnergyStore()
+const fieldsStore = useFieldsStore()
+
 
 const props = defineProps({
   modelValue: String
@@ -288,7 +294,7 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
         </div>
 
         <div style="" class="head-4">
-          <h4 style="">LongDistance</h4>
+          <h4 style="">Long Distance/Time</h4>
         </div>
         <LongDistance v-model="longDistance"></LongDistance>
         <div style="" class="head-4">

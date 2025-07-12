@@ -1,9 +1,20 @@
 <script setup>
-import { ref, watch } from 'vue'
+import {computed, ref, watch} from 'vue'
+import { useEnergyStore} from '../stores/energy.js'
+import {useFieldsStore} from "../stores/fields.js";
 
-const massValue = ref(0)
-const massUnit = ref('lbs')
-const addedEnergy = ref(0)
+const energyStore = useEnergyStore()
+const fieldsStore = useFieldsStore()
+
+const massValue = computed({
+  get: () => fieldsStore.weightValue,
+  set: (val) => fieldsStore.weightValue = val
+})
+
+const massUnit = computed({
+  get: () => fieldsStore.weightType,
+  set: (val) => fieldsStore.weightType = val
+})
 
 const unitToLbs = {
   lbs: 1,
@@ -40,7 +51,7 @@ function calculateEnergy(lbs) {
 
 watch([massValue, massUnit], () => {
   const lbs = massValue.value * unitToLbs[massUnit.value]
-  addedEnergy.value = calculateEnergy(lbs)
+  energyStore.weight = calculateEnergy(lbs)
 })
 </script>
 
@@ -60,7 +71,7 @@ watch([massValue, massUnit], () => {
       </select>
     </div>
     <div class="output">
-      <strong>Energy: +{{ addedEnergy }}</strong>
+      <strong>Energy: +{{ energyStore.weight }}</strong>
     </div>
   </div>
 </template>
@@ -91,6 +102,10 @@ watch([massValue, massUnit], () => {
 }
 .input:hover, .select:hover {
   border-color: var(--Color4);
+}
+
+.select:hover{
+  cursor: pointer;
 }
 
 .output{

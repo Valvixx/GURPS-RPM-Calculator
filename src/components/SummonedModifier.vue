@@ -1,11 +1,25 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { useEnergyStore} from '../stores/energy.js'
+import {useFieldsStore} from "../stores/fields.js";
 
-const power = ref(0)
-const controlType = ref('summoned') // or 'controlled'
+const energyStore = useEnergyStore()
+const fieldsStore = useFieldsStore()
+
+
+const power = computed({
+  get: () => fieldsStore.summonedValue,
+  set: (val) => fieldsStore.summonedValue = val
+})
+
+const controlType = computed({
+  get: () => fieldsStore.summonedType,
+  set: (val) => fieldsStore.summonedType = val
+})
 
 // Таблица порогов для энергии
 const thresholds = [
+  { max: 0, energy: 0 },
   { max: 25, energy: 4 },
   { max: 50, energy: 8 },
   { max: 75, energy: 12 },
@@ -13,7 +27,7 @@ const thresholds = [
   { max: 150, energy: 40 }
 ]
 
-const calculatedEnergy = computed(() => {
+energyStore.summoned = computed(() => {
   let baseEnergy = 0
 
   for (let i = 0; i < thresholds.length; i++) {
@@ -44,7 +58,7 @@ const calculatedEnergy = computed(() => {
       <input
           v-model.number="power"
           type="number"
-          min="1"
+          min="0"
           placeholder="Power (%)"
           class="input"
       />
@@ -55,7 +69,7 @@ const calculatedEnergy = computed(() => {
     </div>
 
     <div class="output">
-      Energy: <strong>+{{ calculatedEnergy }}</strong>
+      Energy: <strong>+{{ energyStore.summoned }}</strong>
     </div>
   </div>
 </template>
@@ -78,11 +92,19 @@ const calculatedEnergy = computed(() => {
   text-align: center;
   height: 2em;
   font-size: 1em;
-  border: 2px solid var(--Color3);
+  border: 3px solid var(--Color3);
   background-color: var(--Color2);
-  border-radius: 0.4em;
+  border-radius: 0.5em;
   padding: 0 0.5em;
   width: 100%;
+}
+
+.input:hover, .select:hover {
+  border-color: var(--Color4);
+}
+
+.select:hover{
+  cursor: pointer;
 }
 
 .output {
