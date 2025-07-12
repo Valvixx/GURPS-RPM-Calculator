@@ -33,18 +33,30 @@ const spellEffects = ref([
   { size: '', effect: '', path: '' },
   { size: '', effect: '', path: '' }
 ])
+watch(spellEffects, (newVal) => {
+  fieldsStore.setSpellEffects(newVal)
+}, { deep: true })
 
 const spellDamage = ref([
-  {intValue: '', addValue: '', category:'', type: '', spellModifiers: [] },
+  {intValue: '', addValue: '', category:'', type: '', spellModifiers: [], isExplosive: false},
 ])
+watch(spellDamage, (newVal) => {
+  fieldsStore.setSpellDamage(newVal)
+}, { deep: true })
 
 const spellTraits = ref([
   {name:'', value:'', traitModifiers: []}
 ])
+watch(spellTraits, (newVal) => {
+  fieldsStore.setSpellTraits(newVal)
+}, { deep: true })
 
 const spellBonuses = ref([
     {value:'', category:'', subject:''}
 ])
+watch(spellBonuses, (newVal) => {
+  fieldsStore.setSpellBonuses(newVal)
+}, { deep: true })
 
 
 const effects = ['Sense', 'Strengthen', 'Restore', 'Control', 'Destroy', 'Create', 'Transform']
@@ -81,7 +93,8 @@ function addDamage() {
     addValue: '',
     category:'',
     type: '',
-    spellModifiers: []
+    spellModifiers: [],
+    isExplosive: false
   })
 }
 
@@ -210,7 +223,7 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
           <option v-for="type in damageTypes" :key="type">{{type}}</option>
         </select>
         <div class="checkboxWrapper">
-          <input type="checkbox" class="checkbox">
+          <input v-model="Damage.isExplosive" type="checkbox" class="checkbox">
           <div class="subtext">ex</div>
         </div>
         <button @click="deleteModifier(index)" class="modifier-btn"> - Mod</button>

@@ -1,6 +1,6 @@
 <script setup>
-import { ref, computed } from 'vue'
-import { useEnergyStore} from '../stores/energy.js'
+import {computed } from 'vue'
+import {useEnergyStore} from '../stores/energy.js'
 import {useFieldsStore} from "../stores/fields.js";
 
 const energyStore = useEnergyStore()
@@ -68,7 +68,7 @@ energyStore.longDistance = computed(() => {
     </div>
 
     <div class="output">
-      Modifier: <strong>+{{ energyStore.longDistance }}</strong>
+      Energy: <strong>+{{ energyStore.longDistance }}</strong>
     </div>
   </div>
 </template>
