@@ -62,8 +62,8 @@ watch(spellBonuses, (newVal) => {
 const effects = ['Sense', 'Strengthen', 'Restore', 'Control', 'Destroy', 'Create', 'Transform']
 const paths = ['Body', 'Chance', 'Crossroads', 'Energy', 'Magic', 'Matter', 'Mind', 'Spirit', 'Undead', 'Unexistence']
 const sizes = ['Greater', 'Lesser']
-const damageTypes = ['cr', 'pi', 'cut', 'burn', 'pi-', 'pi+', 'pi++', 'fatigue', 'healing']
-const damageCategories = ['Internal', 'External']
+const damageTypes = ['burn', 'cor', 'cr', 'cut', 'fat', 'heal', 'imp', 'pi-', 'pi', 'pi+', 'pi++', 'tox']
+const damageCategories = ['Internal', 'External', 'External Explosive']
 const bonusCategories = ['Broad', 'Moderate', 'Narrow']
 
 watch(() => props.modelValue, (newVal) => {

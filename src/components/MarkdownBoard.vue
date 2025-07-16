@@ -1,6 +1,19 @@
 <script setup>
 import { ref, computed } from 'vue'
 import ClipboardIcon from '../assets/clipboard.svg'
+import { useEnergyStore} from '../stores/energy.js'
+import {useFieldsStore} from "../stores/fields.js";
+
+const energyStore = useEnergyStore()
+const fieldsStore = useFieldsStore()
+
+const durationValue = computed({
+  get: () => fieldsStore.durationValue,
+})
+
+const durationUnit = computed({
+  get: () => fieldsStore.durationType,
+})
 
 const props = defineProps({
   name: String,
@@ -9,9 +22,95 @@ const props = defineProps({
 
 const viewMode = ref('markdown')
 
+const damage = computed(() => {
+  return fieldsStore.spellDamage.map(dmg => {
+    let dice = dmg.intValue || 0
+    let bonus = dmg.addValue || 0
+    const category = dmg.category
+
+    switch (category) {
+      case 'External':
+        ({ dice, bonus } = multiplyDamage(dice, bonus, 3))
+        break
+      case 'External Explosive':
+        ({ dice, bonus } = multiplyDamage(dice, bonus, 2))
+        break
+      case 'Internal':
+      default:
+        break
+    }
+
+    let result = `${dice}d`
+
+    if (bonus > 0) {
+      result += `+${bonus}`
+    } else if (bonus < 0) {
+      result += `${bonus}`
+    }
+
+    return result
+  }).join(', ')
+})
+
+function damageToIndex(dice, bonus) {
+  if (bonus > 2 || bonus < -1) {
+    return null;
+  }
+  if (dice <= 1) {
+    return bonus;
+  }
+  else {
+    const base = 3 + (dice - 2) * 4;
+    const offset = bonus + 1;
+    return base + offset;
+  }
+}
+
+function damageEnergy(dice, bonus) {
+  return damageToIndex(dice, bonus);
+}
+
+function indexToDamage(index) {
+  if (index < 3) {
+    // это зона 1d
+    return { dice: 1, bonus: index };
+  } else {
+    // убираем первую тройку, получаем зону ≥2d
+    const idx = index - 3;
+    // сколько полных кубиков после первого?
+    const cubesAfter1 = Math.floor(idx / 4);
+    const dice = 2 + cubesAfter1;
+    const offset = idx % 4;
+    const bonus = offset - 1;
+    return { dice, bonus };
+  }
+}
+
+function multiplyDamage(dice, bonus, multiplier) {
+  const rawDice  = dice * multiplier
+  const rawBonus = bonus * multiplier
+
+  let extra, newDice, newBonus
+
+  if (rawBonus >= 0) {
+    extra    = Math.floor(rawBonus / 3)
+    newBonus = rawBonus % 3
+    newDice  = rawDice + extra
+  } else {
+    extra    = Math.ceil(Math.abs(rawBonus) / 3)
+    newBonus = Math.abs(rawBonus) % 3
+    newDice  = rawDice - extra
+  }
+
+  newDice = Math.max(0, newDice)
+  return { dice: newDice, bonus: newBonus }
+}
+
 const energy = computed(() => {
+  // EFFECTS
   let base = 0
   let greaterCount = 0
+  let effects
 
   for (const eff of props.spellEffects) {
     switch (eff.effect) {
@@ -27,8 +126,57 @@ const energy = computed(() => {
       greaterCount++
     }
   }
+  effects =  base * (1 + greaterCount * 2)
 
-  return base * (1 + greaterCount * 2)
+  const damageEnergyValue = fieldsStore.spellDamage.reduce((acc, dmg) => {
+    const dice = dmg.intValue || 0
+    const bonus = dmg.addValue || 0
+    const type = dmg.type
+
+    let energy = 0
+    switch (type) {
+      case 'burn':
+        energy = damageEnergy(dice, bonus)
+        break
+      case 'cr':
+        energy = damageEnergy(dice, bonus)
+        break
+      case 'cor':
+        energy = Math.ceil(damageEnergy(dice, bonus) * 2)
+        break
+      case 'cut':
+        energy = Math.ceil(damageEnergy(dice, bonus) * 1.5)
+        break
+      case 'fat':
+        energy = Math.ceil(damageEnergy(dice, bonus) * 2)
+        break
+      case 'heal':
+        energy = damageEnergy(dice, bonus)
+        break
+      case 'imp':
+        energy = Math.ceil(damageEnergy(dice, bonus) * 2)
+        break
+      case 'pi-':
+        energy = Math.ceil(damageEnergy(dice, bonus) * 0.5)
+        break
+      case 'pi':
+        energy = damageEnergy(dice, bonus)
+        break
+      case 'pi+':
+        energy = Math.ceil(damageEnergy(dice, bonus) * 1.5)
+        break
+      case 'pi++':
+        energy = Math.ceil(damageEnergy(dice, bonus) * 2)
+        break
+      case 'tox':
+        energy = Math.ceil(damageEnergy(dice, bonus) * 2)
+        break
+    }
+
+    return acc + energy
+  }, 0)
+
+  return effects + damageEnergyValue
 })
 
 const markdownPreview = computed(() => {
@@ -40,8 +188,13 @@ const markdownPreview = computed(() => {
   }).join('\n')
 
   return `## Spell: ${props.name || '[No Name]'}\n` +
+      `**Energy:** ${energy.value || '[None Energy]'}\n` +
       `**Effects:**\n${effectsMarkdown || '- [No Effects]'}\n` +
-      `**Energy:** ${energy.value || '[None Energy]'}\n`
+      `**Distance** \n` +
+      `**Damage** ${damage.value || '[No Damage]'}\n` +
+      `**Duration** ${durationValue.value || '[No Duration]'} ${durationUnit.value || '[No Units]'}\n` +
+      `[Description] \n` +
+      `**Typical Casting:** `
 })
 
 const jsonPreview = computed(() => ({
@@ -64,6 +217,10 @@ function copyCurrent() {
   navigator.clipboard.writeText(currentPreview.value)
       .catch(err => console.error('Copy failed:', err))
 }
+
+
+
+
 </script>
 
 <template>

@@ -1,19 +1,19 @@
-<script setup>
-import { ref, computed } from 'vue'
+<script setup lang="ts">
+import { computed } from 'vue'
 import { useEnergyStore} from '../stores/energy.js'
 import {useFieldsStore} from "../stores/fields.js";
 
 const energyStore = useEnergyStore()
 const fieldsStore = useFieldsStore()
 
-const distanceValue = computed({
+const distanceValue = computed<number>({
   get: () => fieldsStore.distanceValue,
-  set: (val) => fieldsStore.distanceValue = val
+  set: (val:number) => fieldsStore.distanceValue = val
 })
 
 const distanceUnit = computed({
   get: () => fieldsStore.distanceType,
-  set: (val) => fieldsStore.distanceType = val
+  set: (val:string) => fieldsStore.distanceType = val
 })
 
 const thresholds = [
@@ -66,8 +66,8 @@ energyStore.distance = computed(() => {
   const step = 50000
   const extraSteps = Math.ceil((yards - last.maxYards) / step)
   return last.energy + extraSteps
-})
-</script>
+}).value
+</script> 
 
 <template>
   <div class="ranged-distance-component">

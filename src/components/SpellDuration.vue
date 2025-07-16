@@ -1,5 +1,5 @@
-<script setup>
-import {computed, ref, watch} from 'vue'
+<script setup lang="ts">
+import { computed, watch } from 'vue'
 import { useEnergyStore} from '../stores/energy.js'
 import {useFieldsStore} from "../stores/fields.js";
 
@@ -8,12 +8,12 @@ const fieldsStore = useFieldsStore()
 
 const durationValue = computed({
   get: () => fieldsStore.durationValue,
-  set: (val) => fieldsStore.durationValue = val
+  set: (val:number) => fieldsStore.durationValue = val
 })
 
 const durationUnit = computed({
   get: () => fieldsStore.durationType,
-  set: (val) => fieldsStore.durationType = val
+  set: (val:string) => fieldsStore.durationType = val
 })
 
 

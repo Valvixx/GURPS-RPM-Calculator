@@ -1,5 +1,5 @@
-<script setup>
-import {computed } from 'vue'
+<script setup lang="ts">
+import { computed } from 'vue'
 import {useEnergyStore} from '../stores/energy.js'
 import {useFieldsStore} from "../stores/fields.js";
 
@@ -8,12 +8,12 @@ const fieldsStore = useFieldsStore()
 
 const distanceValue = computed({
   get: () => fieldsStore.longDistanceValue,
-  set: (val) => fieldsStore.longDistanceValue = val
+  set: (val: number) => fieldsStore.longDistanceValue = val
 })
 
 const distanceUnit = computed({
   get: () => fieldsStore.longDistanceType,
-  set: (val) => fieldsStore.longDistanceType = val
+  set: (val: string) => fieldsStore.longDistanceType = val
 })
 
 const unitToYards = {

@@ -1,5 +1,5 @@
-<script setup>
-import {computed, ref, watch} from 'vue'
+<script setup lang="ts">
+import { computed, watch } from 'vue'
 import { useEnergyStore} from '../stores/energy.js'
 import {useFieldsStore} from "../stores/fields.js";
 
@@ -8,12 +8,12 @@ const fieldsStore = useFieldsStore()
 
 const massValue = computed({
   get: () => fieldsStore.weightValue,
-  set: (val) => fieldsStore.weightValue = val
+  set: (val:number) => fieldsStore.weightValue = val
 })
 
 const massUnit = computed({
   get: () => fieldsStore.weightType,
-  set: (val) => fieldsStore.weightType = val
+  set: (val:string) => fieldsStore.weightType = val
 })
 
 const unitToLbs = {

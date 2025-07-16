@@ -1,5 +1,5 @@
-<script setup>
-import { ref, computed } from 'vue'
+<script setup lang="ts">
+import { computed } from 'vue'
 import { useEnergyStore} from '../stores/energy.js'
 import {useFieldsStore} from "../stores/fields.js";
 
@@ -9,12 +9,12 @@ const fieldsStore = useFieldsStore()
 
 const power = computed({
   get: () => fieldsStore.summonedValue,
-  set: (val) => fieldsStore.summonedValue = val
+  set: (val:number) => fieldsStore.summonedValue = val
 })
 
 const controlType = computed({
   get: () => fieldsStore.summonedType,
-  set: (val) => fieldsStore.summonedType = val
+  set: (val:string) => fieldsStore.summonedType = val
 })
 
 // Таблица порогов для энергии
