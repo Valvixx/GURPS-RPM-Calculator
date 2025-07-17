@@ -12,6 +12,13 @@ export const useEnergyStore = defineStore('energy', {
     actions: {
         setDuration(value) {
             this.duration = value
+        },
+        setDistance(value) {
+            this.distance = value
+        },
+        setLongDistance(value) {
+            this.longDistance = value
         }
+
     }
 })

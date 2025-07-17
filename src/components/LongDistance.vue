@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import {useEnergyStore} from '../stores/energy.js'
-import {useFieldsStore} from "../stores/fields.js";
+import { computed, watch } from 'vue'
+import { useEnergyStore } from '../stores/energy.js'
+import { useFieldsStore } from "../stores/fields.js"
 
 const energyStore = useEnergyStore()
 const fieldsStore = useFieldsStore()
@@ -19,36 +19,48 @@ const distanceUnit = computed({
 const unitToYards = {
   yards: 1,
   miles: 2000,
-  days: 2000
+  days: 2000 // если это логически так задумано
 }
 
 const thresholds = [
   { max: 200, modifier: 0 },
-  { max: 1000, modifier: 1 },     // ~1/2 mile
-  { max: 2000, modifier: 2 },     // 1 mile
-  { max: 6000, modifier: 3 },     // 3 miles
-  { max: 20000, modifier: 4 },    // 10 miles
-  { max: 60000, modifier: 5 },    // 30 miles
-  { max: 200000, modifier: 6 },   // 100 miles
-  { max: 600000, modifier: 7 },   // 300 miles
-  { max: 2000000, modifier: 8 }   // 1000 miles
+  { max: 1000, modifier: 1 },
+  { max: 2000, modifier: 2 },
+  { max: 6000, modifier: 3 },
+  { max: 20000, modifier: 4 },
+  { max: 60000, modifier: 5 },
+  { max: 200000, modifier: 6 },
+  { max: 600000, modifier: 7 },
+  { max: 2000000, modifier: 8 }
 ]
 
-energyStore.longDistance = computed(() => {
-  const yards = distanceValue.value * unitToYards[distanceUnit.value]
-
+function calculateLongDistanceEnergy(yards: number): number {
   for (let i = 0; i < thresholds.length; i++) {
     if (yards <= thresholds[i].max) {
       return thresholds[i].modifier
     }
   }
 
-  // после 2,000,000 ярдов (1000 миль) каждые ×10 → +2
-  const factor = Math.log10(yards / 2000000)
+  const base = 2000000
+  const factor = Math.log10(yards / base)
   const extraSteps = Math.ceil(factor)
   return 8 + extraSteps * 2
+}
+
+watch([distanceValue, distanceUnit], () => {
+  const val = distanceValue.value
+  const unit = distanceUnit.value
+  if (val <= 0 || !unitToYards[unit]) {
+    energyStore.setLongDistance(0)
+    return
+  }
+
+  const yards = val * unitToYards[unit]
+  const modifier = calculateLongDistanceEnergy(yards)
+  energyStore.setLongDistance(modifier)
 })
 </script>
+
 
 <template>
   <div class="long-distance-component">

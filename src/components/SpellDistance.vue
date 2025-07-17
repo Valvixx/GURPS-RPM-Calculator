@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useEnergyStore} from '../stores/energy.js'
-import {useFieldsStore} from "../stores/fields.js";
+import { computed, watch } from 'vue'
+import { useEnergyStore } from '../stores/energy.js'
+import { useFieldsStore } from "../stores/fields.js"
 
 const energyStore = useEnergyStore()
 const fieldsStore = useFieldsStore()
 
 const distanceValue = computed<number>({
   get: () => fieldsStore.distanceValue,
-  set: (val:number) => fieldsStore.distanceValue = val
+  set: (val: number) => fieldsStore.distanceValue = val
 })
 
 const distanceUnit = computed({
   get: () => fieldsStore.distanceType,
-  set: (val:string) => fieldsStore.distanceType = val
+  set: (val: string) => fieldsStore.distanceType = val
 })
 
 const thresholds = [
@@ -50,12 +50,7 @@ const thresholds = [
   { maxYards: 200000, energy: 30 }
 ]
 
-energyStore.distance = computed(() => {
-  let yards = distanceValue.value
-  if (distanceUnit.value === 'miles') {
-    yards *= 2000
-  }
-
+function calculateDistanceEnergy(yards: number): number {
   for (let i = 0; i < thresholds.length; i++) {
     if (yards <= thresholds[i].maxYards) {
       return thresholds[i].energy
@@ -66,8 +61,19 @@ energyStore.distance = computed(() => {
   const step = 50000
   const extraSteps = Math.ceil((yards - last.maxYards) / step)
   return last.energy + extraSteps
-}).value
-</script> 
+}
+
+watch([distanceValue, distanceUnit], () => {
+  let yards = distanceValue.value
+  if (distanceUnit.value === 'miles') {
+    yards *= 2000
+  }
+
+  const energy = yards <= 0 ? 0 : calculateDistanceEnergy(yards)
+  energyStore.setDistance(energy)
+})
+</script>
+
 
 <template>
   <div class="ranged-distance-component">
