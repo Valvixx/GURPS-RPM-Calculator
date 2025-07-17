@@ -29,13 +29,12 @@ const longDistance = ref(0)
 
 const summonedModifier = ref(0)
 
+const description = ref('')
+
 const spellEffects = ref([
   { size: '', effect: '', path: '' },
   { size: '', effect: '', path: '' }
 ])
-watch(spellEffects, (newVal) => {
-  fieldsStore.setSpellEffects(newVal)
-}, { deep: true })
 
 const spellDamage = ref([
   {intValue: '', addValue: '', category:'', type: '', spellModifiers: [], isExplosive: false},
@@ -75,8 +74,13 @@ watch(name, (newVal) => {
 })
 
 watch(spellEffects, (newVal) => {
+  fieldsStore.setSpellEffects(newVal)
   emit('update:spellEffects', newVal)
 }, { deep: true })
+
+watch(description, (newVal) => {
+  fieldsStore.setDescription(newVal)
+})
 
 function addSpellEffect() {
   if (spellEffects.value.length <= 5) {
@@ -222,10 +226,6 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
           <option disabled value="">--Type--</option>
           <option v-for="type in damageTypes" :key="type">{{type}}</option>
         </select>
-        <div class="checkboxWrapper">
-          <input v-model="Damage.isExplosive" type="checkbox" class="checkbox">
-          <div class="subtext">ex</div>
-        </div>
         <button @click="deleteModifier(index)" class="modifier-btn"> - Mod</button>
         <button @click="addModifier(index)" class="modifier-btn"> + Mod</button>
       </div>
@@ -338,7 +338,15 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
     <!-- --ADDITIONAL MODIFIERS-- -->
 
     <div class="head-3">
-      <h3>Additional Modifiers</h3>
+      <h3>Additional</h3>
+    </div>
+    <div>
+      <textarea
+          id="description-field"
+          class="input"
+          placeholder="Spell Description"
+          v-model="description"
+      />
     </div>
 
   </div>
@@ -356,7 +364,18 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
   width: 50em;
 }
 
+#description-field {
+  height: 5em;
+  width: 50em;
+  margin-top: 1em;
+  resize: none;
+}
+
 #name-field:hover {
+  border-color: var(--Color4);
+}
+
+#description-field:hover {
   border-color: var(--Color4);
 }
 
@@ -470,7 +489,7 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
 
 .modifier-btn{
   height: 2em;
-  width: 5em;
+  width: 7.5em;
   font-size: 1em;
   font-family: inherit;
   text-align: center;
@@ -516,7 +535,7 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
 }
 
 #trait-name{
-  width: 29.5em;
+  width: 24.5em;
 }
 
 #trait-value{
@@ -545,41 +564,6 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
   flex-direction: row;
   align-items: center;
   gap: 1em;
-}
-
-.checkbox{
-  height: 1.25em;
-  width: 1.25em;
-  appearance: none;
-  -webkit-appearance: none;
-  outline: none;
-
-  border: 2px solid var(--Color3);
-  border-radius: 50%;
-  background-color: var(--Color2);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.checkboxWrapper{
-  width: 4em;
-  border: 3px solid var(--Color3);
-  border-radius: 0.5em;
-  background-color: var(--Color2);
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-}
-
-.subtext{
-  margin-left: 0.25em;
-  font-size: 1em;
-}
-
-.checkbox:checked {
-  background-color: var(--Color4);
-  border-color: var(--Color3);
 }
 
 .features-wrapper{

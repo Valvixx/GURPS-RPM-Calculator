@@ -21,7 +21,10 @@ export const useFieldsStore = defineStore('fields', {
         spellBonuses: [],
         spellTraits: [],
         spellDamage: [],
-        spellEffects: []
+        spellEffects: [],
+
+        description: '',
+
     }),
 
     actions: {
@@ -37,6 +40,9 @@ export const useFieldsStore = defineStore('fields', {
         },
         setSpellEffects(newEffects) {
             this.spellEffects = [...newEffects]
+        },
+        setDescription(newDesc) {
+            this.description = newDesc
         }
     },
 })
