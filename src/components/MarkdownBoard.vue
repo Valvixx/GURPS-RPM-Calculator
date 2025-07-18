@@ -195,7 +195,7 @@ const baseEnergy = computed(() => {
 
     const energyForTrait = adjustedPts >= 0
         ? Math.ceil(adjustedPts)
-        : Math.ceil(adjustedPts / 5);
+        : Math.abs(Math.ceil(adjustedPts / 5));
 
     return acc + energyForTrait;
   }, 0);

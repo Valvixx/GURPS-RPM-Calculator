@@ -326,13 +326,10 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
         </div>
           <SubjectWeight v-model="weight"></SubjectWeight>
         <div style="margin-left: 0.5em" class="head-4">
-          <h4 style="">Distance</h4>
+          <h4 style="">Range</h4>
         </div>
           <SpellDistance v-model="distance"></SpellDistance>
-
-
       </div>
-
     </div>
 
     <!-- --ADDITIONAL MODIFIERS-- -->
