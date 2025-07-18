@@ -368,7 +368,7 @@ const typicalCasting = computed(() => {
   // Трейты
   fieldsStore.spellTraits.forEach(trait => {
     if (trait.name && trait.value) {
-      const energy = calculateTraitEnergy(trait)
+      const energy = Math.abs(calculateTraitEnergy(trait))
 
       // Формируем строку с модификаторами для трейта
       let modifiersStr = ''

@@ -131,7 +131,6 @@ watch([distanceValue, distanceUnit], () => {
 }
 
 .output{
-  font-weight: bold;
   padding-bottom: 1em;
 }
 </style>
