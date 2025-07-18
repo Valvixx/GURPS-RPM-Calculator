@@ -79,7 +79,6 @@ watch([massValue, massUnit], () => {
 <style scoped>
 .mass-component {
   margin-top: 1em;
-  margin-left: 0.5em;
   display: flex;
   flex-direction: column;
   gap: 1em;

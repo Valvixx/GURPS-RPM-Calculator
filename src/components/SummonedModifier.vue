@@ -81,6 +81,7 @@ energyStore.summoned = computed(() => {
   gap: 1em;
   width: 24em;
   margin-top: 1em;
+  margin-bottom: 1em;
 }
 
 .input-group {

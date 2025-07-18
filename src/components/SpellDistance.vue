@@ -103,7 +103,7 @@ watch([distanceValue, distanceUnit], () => {
   flex-direction: column;
   gap: 1em;
   width: 24em;
-  margin: 1em 0 1em 0.5em;
+  margin: 1em 0 1em 0;
 
 }
 

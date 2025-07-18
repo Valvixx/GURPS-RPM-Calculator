@@ -303,34 +303,61 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
             <option disabled value="">- Category -</option>
             <option v-for="category in bonusCategories" :key="category">{{category}}</option>
           </select>
-          <input v-model="Bonus.subject" class="input" id="trait-value" placeholder="Subject(s)">
+          <input v-model="Bonus.subject" class="input" id="trait-subject" placeholder="Subject(s)">
         </div>
+        <div class="features-subwrapper">
 
-        <div style="" class="head-4">
-          <h4 style="">Long Distance/Time</h4>
-        </div>
-        <LongDistance v-model="longDistance"></LongDistance>
-        <div style="" class="head-4">
-          <h4 style="">Summoned or Controlled</h4>
-        </div>
-        <SummonedModifier v-model="summonedModifier"></SummonedModifier>
+          <div>
+            <div>
+              <div class="head-4-2">
+                <h4>Long Distance/Time</h4>
+              </div>
+              <LongDistance v-model="longDistance"></LongDistance>
+            </div>
 
+            <div>
+              <div class="head-4-2">
+                <h4>Duration</h4>
+              </div>
+              <SpellDuration v-model="duration" />
+            </div>
+
+            <div>
+              <div class="head-4-2">
+                <h4>Summoned or Controlled</h4>
+              </div>
+              <SummonedModifier v-model="summonedModifier"></SummonedModifier>
+            </div>
+          </div>
+
+
+          <div>
+            <div>
+              <div class="head-4-2">
+                <h4>Range</h4>
+              </div>
+              <SpellDistance v-model="distance"></SpellDistance>
+            </div>
+
+            <div>
+              <div class="head-4-2">
+                <h4>Weight</h4>
+              </div>
+              <SubjectWeight v-model="weight"></SubjectWeight>
+            </div>
+
+            <div>
+              <div class="head-4-2">
+                <h4>Area of Effect (Coming Soon)</h4>
+              </div>
+            </div>
+          </div>
+
+
+
+        </div>
       </div>
-      <div>
-        <div style="margin-left: 0.5em" class="head-4">
-          <h4 style="">Duration</h4>
-        </div>
-          <SpellDuration v-model="duration" />
-        <div style="margin-left: 0.5em" class="head-4">
-          <h4 style="">Weight</h4>
-        </div>
-          <SubjectWeight v-model="weight"></SubjectWeight>
-        <div style="margin-left: 0.5em" class="head-4">
-          <h4 style="">Range</h4>
-        </div>
-          <SpellDistance v-model="distance"></SpellDistance>
       </div>
-    </div>
 
     <!-- --ADDITIONAL MODIFIERS-- -->
 
@@ -452,8 +479,19 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 24em;
+  width: 50em;
+}
 
+.head-4-2{
+  margin-top: 1em;
+  text-align: center;
+  border: 3px solid var(--Color4);
+  border-radius: 0.5em;
+  height: 2em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 24em;
 }
 
 .damage-container{
@@ -538,9 +576,12 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
 #trait-value{
   width: 7.5em;
 }
+#trait-subject{
+  width: 33.5em;
+}
 
 .bestows-btn{
-  width: 11.5em;
+  width: 24em;
   height: 2em;
   margin-top: 1em;
   font-size: 1em;
@@ -560,12 +601,12 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 1em;
+  gap: 2em;
 }
 
-.features-wrapper{
+.features-subwrapper{
   display: flex;
   flex-direction: row;
-  gap: 1.5em;
+  gap: 2em;
 }
 </style>
