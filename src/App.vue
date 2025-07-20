@@ -24,4 +24,12 @@ function updateSpellEffects(effects) {
   box-sizing: border-box;
   color: var(--TextColor);
 }
+
+.content {
+  display: flex;
+  flex-direction: row;
+  gap: 3em;
+  margin: 1em;
+}
+
 </style>
