@@ -18,6 +18,10 @@ export const useFieldsStore = defineStore('fields', {
         summonedValue: 0,
         summonedType: 'summoned',
 
+        aoeRadius: 0,
+        aoeType: 'Everyone',
+        aoeValue: 0,
+
         spellBonuses: [],
         spellTraits: [],
         spellDamage: [],

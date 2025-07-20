@@ -7,6 +7,7 @@ import LongDistance from './LongDistance.vue'
 import SummonedModifier from "./SummonedModifier.vue";
 import { useEnergyStore} from '../stores/energy.js'
 import {useFieldsStore} from "../stores/fields.js";
+import IncAOE from "./IncAOE.vue";
 
 const energyStore = useEnergyStore()
 const fieldsStore = useFieldsStore()
@@ -21,19 +22,15 @@ const emit = defineEmits(['update:modelValue', 'update:spellEffects'])
 const name = ref(props.modelValue)
 
 const duration = ref('')
-
 const weight = ref(0)
-
 const distance = ref(0)
 const longDistance = ref(0)
-
 const summonedModifier = ref(0)
-
+const AOE = ref(0)
 const description = ref('')
 
 const spellEffects = ref([
-  { size: '', effect: '', path: '' },
-  { size: '', effect: '', path: '' }
+  { effect: '', path: '' },
 ])
 
 const spellDamage = ref([
@@ -51,7 +48,7 @@ watch(spellTraits, (newVal) => {
 }, { deep: true })
 
 const spellBonuses = ref([
-    {value:'', category:'', subject:''}
+  {value:'', category:'', subject:''}
 ])
 watch(spellBonuses, (newVal) => {
   fieldsStore.setSpellBonuses(newVal)
@@ -59,10 +56,9 @@ watch(spellBonuses, (newVal) => {
 
 
 const effects = ['Sense', 'Strengthen', 'Restore', 'Control', 'Destroy', 'Create', 'Transform']
-const paths = ['Body', 'Chance', 'Crossroads', 'Energy', 'Magic', 'Matter', 'Mind', 'Spirit', 'Undead', 'Unexistence']
-const sizes = ['Greater', 'Lesser']
+const paths = ['Arcanum', 'Augury', 'Demonology', 'Elementalism', 'Mesmerism', 'Necromancy', 'Protection', 'Transfiguration']
 const damageTypes = ['burn', 'cor', 'cr', 'cut', 'fat', 'heal', 'imp', 'pi-', 'pi', 'pi+', 'pi++', 'tox']
-const damageCategories = ['Internal', 'External', 'External Explosive']
+const damageCategories = ['Direct', 'Indirect', 'Indirect Explosive']
 const bonusCategories = ['Broad', 'Moderate', 'Narrow']
 
 watch(() => props.modelValue, (newVal) => {
@@ -84,7 +80,7 @@ watch(description, (newVal) => {
 
 function addSpellEffect() {
   if (spellEffects.value.length <= 5) {
-    spellEffects.value.push({ size: '', effect: '', path: '' })
+    spellEffects.value.push({effect: '', path: '' })
   }
 }
 function deleteSpellEffect() {
@@ -177,12 +173,8 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
         v-for="(spellEffect, index) in spellEffects"
         :key="index"
         class="effects-container"
+        id="eff-container"
     >
-      <select v-model="spellEffect.size" class="input effect">
-        <option disabled value="">-- Select a size --</option>
-        <option v-for="size in sizes" :key="size">{{ size }}</option>
-      </select>
-
       <select v-model="spellEffect.effect" class="input effect">
         <option disabled value="">-- Select an effect --</option>
         <option v-for="effect in effects" :key="effect">{{ effect }}</option>
@@ -348,8 +340,9 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
 
             <div>
               <div class="head-4-2">
-                <h4>Area of Effect (Coming Soon)</h4>
+                <h4>Area of Effect</h4>
               </div>
+              <IncAOE v-model="AOE"> </IncAOE>
             </div>
           </div>
 
@@ -357,7 +350,7 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
 
         </div>
       </div>
-      </div>
+    </div>
 
     <!-- --ADDITIONAL MODIFIERS-- -->
 
@@ -412,6 +405,10 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
 
 }
 
+#eff-container{
+  gap: 2em;
+}
+
 .input {
   height: 2em;
   font-size: 1em;
@@ -424,7 +421,7 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
 
 .input.effect {
   height: 2em;
-  width: 16em;
+  width: 24em;
 }
 
 .input.effect:hover {
