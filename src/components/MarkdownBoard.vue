@@ -162,6 +162,20 @@ function formatTraitModifier(mod) {
   return `${mod.name}, ${value > 0 ? '+' : ''}${value}${suffix}`
 }
 
+function formatSpellModifier(mod) {
+  const rawValue = Number(mod.value)
+  const value = Number.isFinite(rawValue) ? rawValue : 0
+  const energy = calculateSpellModifierEnergy(value)
+  return `${mod.name}, ${value > 0 ? '+' : ''}${value}% (${energy})`
+}
+
+function calculateSpellModifierEnergy(value) {
+  const numValue = Number(value) || 0
+  return numValue >= 0
+      ? Math.floor(numValue / 5)
+      : Math.ceil(numValue / 5)
+}
+
 // Подсчет количества Greater эффектов
 const greaterEffectsCount = computed(() => {
   return props.spellEffects.filter(eff => eff.size === 'Greater').length
@@ -404,7 +418,7 @@ const typicalCasting = computed(() => {
       if (dmg.spellModifiers && dmg.spellModifiers.length > 0) {
         const modifiersList = dmg.spellModifiers
             .filter(mod => mod.name && mod.value)
-            .map(mod => `${mod.name}, ${mod.value > 0 ? '+' : ''}${mod.value}%`)
+            .map(mod => formatSpellModifier(mod))
             .join('; ')
         if (modifiersList) {
           modifiersStr = ` (${modifiersList})`
