@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Electron
+release/
+build/
+*.exe
+*.dmg
+*.AppImage
+*.deb
+*.rpm

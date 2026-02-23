@@ -1,12 +1,20 @@
 {
   "name": "gurps-rpm-calculator",
+  "productName": "GURPS RPM Calculator",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "description": "A calculator for GURPS Ritual Path Magic spell energy costs",
+  "main": "electron/main.js",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "electron:dev": "concurrently \"cross-env BROWSER=none npm run dev\" \"wait-on http://localhost:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
+    "electron:build": "npm run build && npx electron-builder",
+    "electron:build:win": "npm run build && npx electron-builder --win",
+    "electron:build:mac": "npm run build && npx electron-builder --mac",
+    "electron:build:linux": "npm run build && npx electron-builder --linux"
   },
   "dependencies": {
     "@vueform/multiselect": "^2.6.11",
@@ -18,8 +26,56 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.0",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^40.6.0",
+    "electron-builder": "^26.8.1",
     "vite": "^7.0.0",
     "vite-plugin-svg-loader": "^1.0.0",
-    "vite-svg-loader": "^5.1.0"
+    "vite-svg-loader": "^5.1.0",
+    "wait-on": "^8.0.3"
+  },
+  "author": "Valvixx",
+  "build": {
+    "appId": "com.gurpsrpm.calculator",
+    "productName": "GURPS RPM Calculator",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "portable": {
+      "artifactName": "${productName}-${version}-Portable.exe",
+      "unpackDirName": "GURPS-RPM-Calculator"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "GURPS RPM Calculator"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "build/icon.icns"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "build/icon-512x512.png"
+    }
   }
 }

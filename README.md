@@ -1,8 +1,16 @@
 # GURPS RPM Calculator
 
-A Vue 3 web application for calculating energy costs for **Ritual Path Magic (RPM)** spells in the GURPS tabletop RPG system.
+A Vue 3 + Electron application for calculating energy costs for **Ritual Path Magic (RPM)** spells in the GURPS tabletop RPG system.
 
 > ⚠️ **Disclaimer:** This material is not official and is not endorsed by Steve Jackson Games. This is a fan-created tool for personal use.
+
+---
+
+## Download / Скачать
+
+**Windows (Portable)** — [Download from Releases](../../releases)
+
+> See all releases and version history on the [Releases page](../../releases).
 
 ---
 
@@ -30,9 +38,17 @@ A Vue 3 web application for calculating energy costs for **Ritual Path Magic (RP
 | Technology | Purpose |
 |------------|---------|
 | Vue 3 | Frontend framework (Composition API) |
+| Electron 40 | Desktop application wrapper |
 | Vite 7 | Build tool and dev server |
 | Pinia 3 | State management |
 | Vue Router 4 | Client-side routing |
+| electron-builder | Windows packaging |
+
+### Desktop App Features
+
+- Native desktop application — runs as a standalone app (no browser required)
+- Portable version — no installation needed, just run the .exe
+- Windows x64 support
 
 ### Getting Started
 
@@ -88,9 +104,17 @@ src/
 | Технология | Назначение |
 |------------|------------|
 | Vue 3 | Фронтенд-фреймворк (Composition API) |
+| Electron 40 | Обёртка для десктопного приложения |
 | Vite 7 | Инструмент сборки и dev-сервер |
 | Pinia 3 | Управление состоянием |
 | Vue Router 4 | Клиентская маршрутизация |
+| electron-builder | Сборка для Windows |
+
+### Возможности десктопного приложения
+
+- Нативное приложение — работает как обычная программа (браузер не нужен)
+- Портативная версия — установка не требуется, просто запустите .exe
+- Поддержка Windows x64
 
 ### Начало работы
 
