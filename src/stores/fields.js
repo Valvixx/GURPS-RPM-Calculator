@@ -21,6 +21,8 @@ export const useFieldsStore = defineStore('fields', {
         aoeRadius: 0,
         aoeType: 'Everyone',
         aoeValue: 0,
+        rpmAoeRadius: 0,
+        rpmAoeUnit: 'yards',
 
         spellBonuses: [],
         spellTraits: [],

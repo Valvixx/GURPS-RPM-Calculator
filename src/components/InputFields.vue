@@ -5,6 +5,7 @@ import SubjectWeight from './SubjectWeight.vue'
 import SpellDistance from './SpellDistance.vue'
 import LongDistance from './LongDistance.vue'
 import SummonedModifier from "./SummonedModifier.vue";
+import RpmAOE from "./RpmAOE.vue";
 import { useEnergyStore} from '../stores/energy.js'
 import {useFieldsStore} from "../stores/fields.js";
 
@@ -26,7 +27,6 @@ const weight = ref(0)
 
 const distance = ref(0)
 const longDistance = ref(0)
-
 const summonedModifier = ref(0)
 
 const description = ref('')
@@ -348,8 +348,9 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
 
             <div>
               <div class="head-4-2">
-                <h4>Area of Effect (Coming Soon)</h4>
+                <h4>Area of Effect</h4>
               </div>
+              <RpmAOE />
             </div>
           </div>
 

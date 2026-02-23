@@ -23,6 +23,44 @@ const props = defineProps({
 const viewMode = ref('markdown')
 
 const description = computed(() => fieldsStore.description)
+const YARDS_PER_MILE = 2000
+const BASE_AOE_THRESHOLDS = [2, 3, 5, 7, 10, 15]
+
+function getRpmAoeThreshold(modifier) {
+  return BASE_AOE_THRESHOLDS[modifier % 6] * (10 ** Math.floor(modifier / 6))
+}
+
+function calculateRpmAoeModifier(yards) {
+  if (yards <= 0) return 0
+
+  let modifier = 0
+  while (getRpmAoeThreshold(modifier) < yards) {
+    modifier += 1
+  }
+  return modifier
+}
+
+const rpmAoeYards = computed(() => {
+  const radius = Number(fieldsStore.rpmAoeRadius) || 0
+  if (radius <= 0) return 0
+
+  return fieldsStore.rpmAoeUnit === 'miles'
+      ? radius * YARDS_PER_MILE
+      : radius
+})
+
+const rpmAoeEnergy = computed(() => {
+  const modifier = calculateRpmAoeModifier(rpmAoeYards.value)
+  return modifier * 2
+})
+
+const rpmAoeText = computed(() => {
+  const radius = Number(fieldsStore.rpmAoeRadius) || 0
+  if (radius <= 0) return ''
+
+  const unit = fieldsStore.rpmAoeUnit || 'yards'
+  return `Area of Effect, ${radius} ${unit}`
+})
 
 function multiplyDamage(dice, bonus, multiplier) {
   const rawDice  = dice * multiplier
@@ -231,6 +269,7 @@ const baseEnergy = computed(() => {
   const distanceEnergy = energyStore.distance
   const longDistanceEnergy = energyStore.longDistance
   const summonEnergy = energyStore.summoned
+  const aoeEnergyValue = rpmAoeEnergy.value
 
   return base
       + damageEnergyValue
@@ -242,6 +281,7 @@ const baseEnergy = computed(() => {
       + distanceEnergy
       + longDistanceEnergy
       + summonEnergy
+      + aoeEnergyValue
 })
 
 // Итоговая энергия (с умножением)
@@ -287,6 +327,20 @@ const damageText = computed(() => {
         return result
       })
       .join(', ')
+})
+
+const inherentModifiers = computed(() => {
+  const modifiers = []
+
+  if (damageText.value) {
+    modifiers.push(`Damage, ${damageText.value}`)
+  }
+
+  if (rpmAoeText.value) {
+    modifiers.push(rpmAoeText.value)
+  }
+
+  return modifiers.length > 0 ? `${modifiers.join('; ')}.` : 'None.'
 })
 
 // Типичное произнесение
@@ -341,6 +395,12 @@ const typicalCasting = computed(() => {
   })
 
   // Длительность
+  if (rpmAoeEnergy.value > 0) {
+    const radius = Number(fieldsStore.rpmAoeRadius) || 0
+    const unit = fieldsStore.rpmAoeUnit || 'yards'
+    parts.push(`Area of Effect, ${radius} ${unit} (${rpmAoeEnergy.value})`)
+  }
+
   if (energyStore.duration > 0) {
     parts.push(`Duration, ${durationValue.value} ${durationUnit.value} (${energyStore.duration})`)
   }
@@ -476,7 +536,7 @@ function calculateBonusEnergy(bonus) {
 const markdownPreview = computed(() => {
   return `### ${props.name || '[No Name]'}\n` +
       `**Spell Effects:** ${effectsText.value || '[No Effects]'}.\n` +
-      `**Inherent Modifiers:** ${damageText.value ? `Damage, ${damageText.value}` : ''}.\n` +
+      `**Inherent Modifiers:** ${inherentModifiers.value}\n` +
       `**Greater Effects:** ${greaterEffectsCount.value} (X${energyMultiplier.value}).\n` +
       `*${description.value || '[No description]'}*\n` +
       `**Typical Casting:** ${typicalCasting.value}\n`
@@ -492,7 +552,8 @@ const jsonPreview = computed(() => ({
   baseEnergy: baseEnergy.value,
   energyMultiplier: energyMultiplier.value,
   totalEnergy: totalEnergy.value,
-  greaterEffects: greaterEffectsCount.value
+  greaterEffects: greaterEffectsCount.value,
+  aoeEnergy: rpmAoeEnergy.value
 }))
 
 const currentPreview = computed(() =>
