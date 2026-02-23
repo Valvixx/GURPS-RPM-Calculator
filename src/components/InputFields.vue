@@ -1,5 +1,5 @@
 <script setup>
-import {defineEmits, defineProps, ref, watch} from 'vue'
+import {computed, defineEmits, defineProps, ref, watch} from 'vue'
 import SpellDuration from './SpellDuration.vue'
 import SubjectWeight from './SubjectWeight.vue'
 import SpellDistance from './SpellDistance.vue'
@@ -8,6 +8,7 @@ import SummonedModifier from "./SummonedModifier.vue";
 import RpmAOE from "./RpmAOE.vue";
 import { useEnergyStore} from '../stores/energy.js'
 import {useFieldsStore} from "../stores/fields.js";
+import traitsRaw from '../Basic Set Traits.adq?raw'
 
 const energyStore = useEnergyStore()
 const fieldsStore = useFieldsStore()
@@ -65,6 +66,188 @@ const damageTypes = ['burn', 'cor', 'cr', 'cut', 'fat', 'heal', 'imp', 'pi-', 'p
 const damageCategories = ['Internal', 'External', 'External Explosive']
 const bonusCategories = ['Broad', 'Moderate', 'Narrow']
 
+function parsePercent(rawValue) {
+  if (typeof rawValue !== 'string') return null
+  const match = rawValue.trim().match(/^([+-]?\d+(?:\.\d+)?)%$/)
+  return match ? Number(match[1]) : null
+}
+
+function parseFlat(rawValue) {
+  if (typeof rawValue !== 'string') return null
+  const match = rawValue.trim().match(/^([+-]?\d+(?:\.\d+)?)$/)
+  return match ? Number(match[1]) : null
+}
+
+function parseTraitLibrary() {
+  try {
+    const parsed = JSON.parse(traitsRaw)
+    const rows = Array.isArray(parsed?.rows) ? parsed.rows : []
+
+    return rows
+        .filter(row => typeof row?.name === 'string' && row.name.trim() !== '')
+        .map(row => ({
+          name: row.name.trim(),
+          points: Number.isFinite(Number(row?.calc?.points))
+              ? Number(row.calc.points)
+              : (Number.isFinite(Number(row?.base_points)) ? Number(row.base_points) : null),
+          modifiers: Array.isArray(row?.modifiers)
+              ? row.modifiers
+                  .filter(mod => typeof mod?.name === 'string' && mod.name.trim() !== '')
+                  .map(mod => {
+                    const percent = parsePercent(mod.cost_adj)
+                    const flat = percent === null ? parseFlat(mod.cost_adj) : null
+
+                    return {
+                      name: mod.name.trim(),
+                      percent,
+                      flat,
+                      mode: percent !== null ? 'percent' : (flat !== null ? 'flat' : null)
+                    }
+                  })
+              : []
+        }))
+  } catch (error) {
+    console.error('Failed to parse Basic Set Traits.adq:', error)
+    return []
+  }
+}
+
+const traitLibrary = parseTraitLibrary()
+const activeTraitDropdownIndex = ref(null)
+const activeTraitModifierDropdownKey = ref(null)
+
+const traitLookup = computed(() => {
+  const map = new Map()
+  for (const trait of traitLibrary) {
+    map.set(trait.name.toLowerCase(), trait)
+  }
+  return map
+})
+
+function findTraitByName(name) {
+  if (!name) return null
+  return traitLookup.value.get(String(name).trim().toLowerCase()) || null
+}
+
+function onTraitNameSelected(trait) {
+  const selected = findTraitByName(trait.name)
+  if (!selected) return
+
+  if (selected.points !== null) {
+    trait.value = String(selected.points)
+  }
+}
+
+function isTraitDropdownOpen(index) {
+  return activeTraitDropdownIndex.value === index
+}
+
+function openTraitDropdown(index) {
+  activeTraitDropdownIndex.value = index
+}
+
+function closeTraitDropdown() {
+  activeTraitDropdownIndex.value = null
+}
+
+function getFilteredTraitOptions(query) {
+  const normalized = String(query || '').trim().toLowerCase()
+
+  if (!normalized) {
+    return traitLibrary
+  }
+
+  const startsWith = []
+  const includes = []
+
+  for (const trait of traitLibrary) {
+    const name = trait.name.toLowerCase()
+    if (name.startsWith(normalized)) {
+      startsWith.push(trait)
+    } else if (name.includes(normalized)) {
+      includes.push(trait)
+    }
+  }
+
+  return startsWith.concat(includes)
+}
+
+function onTraitNameInput(index) {
+  openTraitDropdown(index)
+}
+
+function onTraitNameBlur() {
+  setTimeout(() => {
+    closeTraitDropdown()
+  }, 120)
+}
+
+function selectTraitOption(trait, option) {
+  trait.name = option.name
+  onTraitNameSelected(trait)
+  closeTraitDropdown()
+}
+
+function getTraitModifierPresets(traitName) {
+  const selected = findTraitByName(traitName)
+  return selected?.modifiers || []
+}
+
+function getTraitModifierDropdownKey(traitIndex, modifierIndex) {
+  return `${traitIndex}-${modifierIndex}`
+}
+
+function isTraitModifierDropdownOpen(traitIndex, modifierIndex) {
+  return activeTraitModifierDropdownKey.value === getTraitModifierDropdownKey(traitIndex, modifierIndex)
+}
+
+function openTraitModifierDropdown(traitIndex, modifierIndex) {
+  activeTraitModifierDropdownKey.value = getTraitModifierDropdownKey(traitIndex, modifierIndex)
+}
+
+function closeTraitModifierDropdown() {
+  activeTraitModifierDropdownKey.value = null
+}
+
+function onTraitModifierBlur() {
+  setTimeout(() => {
+    closeTraitModifierDropdown()
+  }, 120)
+}
+
+function getTraitModifierPresetLabel(modifier) {
+  return modifier.presetLabel || '-- Modifier Preset --'
+}
+
+function getTraitModifierMode(modifier) {
+  return modifier?.mode === 'flat' ? 'flat' : 'percent'
+}
+
+function onTraitModifierModeChange(event, modifier) {
+  modifier.mode = event.target.value === 'flat' ? 'flat' : 'percent'
+}
+
+function applyTraitModifierPreset(trait, modifier, preset) {
+  if (!preset) return
+
+  const hasPercent = preset.percent !== null
+  const hasFlat = preset.flat !== null
+  const suffix = hasPercent
+      ? ` (${preset.percent > 0 ? '+' : ''}${preset.percent}%)`
+      : (hasFlat ? ` (${preset.flat > 0 ? '+' : ''}${preset.flat} pts)` : '')
+
+  modifier.presetLabel = `${preset.name}${suffix}`
+  modifier.name = preset.name
+  if (hasPercent) {
+    modifier.value = String(preset.percent)
+    modifier.mode = 'percent'
+  } else if (hasFlat) {
+    modifier.value = String(preset.flat)
+    modifier.mode = 'flat'
+  }
+  closeTraitModifierDropdown()
+}
+
 watch(() => props.modelValue, (newVal) => {
   name.value = newVal
 })
@@ -114,7 +297,7 @@ function deleteModifier(index) {
 }
 
 function addTraitModifier(index) {
-  spellTraits.value[index].traitModifiers.push({ name: '', value: '' })
+  spellTraits.value[index].traitModifiers.push({ name: '', value: '', mode: 'percent' })
 }
 function deleteTraitModifier(index) {
   spellTraits.value[index].traitModifiers.pop()
@@ -259,21 +442,93 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
     <div v-for="(Trait, index) in spellTraits" class="traits-container">
       <div class="traits-subcontainer">
         <input v-model="Trait.value" class="input" id="trait-value" type="number" placeholder="Value (pts)">
-        <input v-model="Trait.name" class="input" id="trait-name" placeholder="Trait Name">
+        <div class="trait-name-field">
+          <input
+              v-model="Trait.name"
+              class="input"
+              id="trait-name"
+              placeholder="Trait Name"
+              autocomplete="off"
+              @focus="openTraitDropdown(index)"
+              @input="onTraitNameInput(index)"
+              @change="onTraitNameSelected(Trait)"
+              @blur="onTraitNameBlur"
+          >
+          <div v-if="isTraitDropdownOpen(index)" class="trait-dropdown">
+            <div
+                v-for="(option, optionIndex) in getFilteredTraitOptions(Trait.name)"
+                :key="`${option.name}-${optionIndex}`"
+                class="trait-option"
+                @mousedown.prevent="selectTraitOption(Trait, option)"
+            >
+              <span>{{ option.name }}</span>
+              <span v-if="option.points !== null">{{ option.points > 0 ? `+${option.points}` : option.points }}</span>
+            </div>
+            <div
+                v-if="getFilteredTraitOptions(Trait.name).length === 0"
+                class="trait-option trait-option-empty"
+            >
+              No matches
+            </div>
+          </div>
+        </div>
         <button @click="deleteTraitModifier(index)" class="modifier-btn"> - Mod</button>
         <button @click="addTraitModifier(index)" class="modifier-btn"> + Mod</button>
       </div>
 
-      <div v-for="(modifier, index2) in Trait.traitModifiers" :key = "index2" class="modifierWrapper">
+      <div v-for="(modifier, index2) in Trait.traitModifiers" :key = "index2" class="modifierWrapper trait-modifier-row">
+        <div class="trait-modifier-preset-field">
+          <button
+              type="button"
+              class="input trait-modifier-preset-button"
+              @click="openTraitModifierDropdown(index, index2)"
+              @blur="onTraitModifierBlur"
+          >
+            {{ getTraitModifierPresetLabel(modifier) }}
+          </button>
+          <div
+              v-if="isTraitModifierDropdownOpen(index, index2)"
+              class="trait-modifier-dropdown"
+          >
+            <div
+                v-for="(preset, presetIndex) in getTraitModifierPresets(Trait.name)"
+                :key="`${preset.name}-${presetIndex}`"
+                class="trait-modifier-option"
+                @mousedown.prevent="applyTraitModifierPreset(Trait, modifier, preset)"
+            >
+              {{
+                preset.percent !== null
+                    ? `${preset.name} (${preset.percent > 0 ? '+' : ''}${preset.percent}%)`
+                    : (preset.flat !== null
+                        ? `${preset.name} (${preset.flat > 0 ? '+' : ''}${preset.flat} pts)`
+                        : preset.name)
+              }}
+            </div>
+            <div
+                v-if="getTraitModifierPresets(Trait.name).length === 0"
+                class="trait-modifier-option trait-modifier-option-empty"
+            >
+              No presets
+            </div>
+          </div>
+        </div>
         <input @wheel="onWheel($event, modifier, 'value', 5)"
                v-model="modifier.value"
                type="number"
-               class="input"
+               class="input trait-modifier-value"
                id="modifier-value"
-               placeholder="Value (%)"
-               step="5">
+               :placeholder="getTraitModifierMode(modifier) === 'flat' ? 'Value (pts)' : 'Value (%)'"
+               :step="getTraitModifierMode(modifier) === 'flat' ? 1 : 5">
+        <select
+            class="input trait-modifier-mode"
+            :value="getTraitModifierMode(modifier)"
+            @change="onTraitModifierModeChange($event, modifier)"
+        >
+          <option value="percent">%</option>
+          <option value="flat">pts</option>
+        </select>
         <input v-model="modifier.name"
-               class="input"
+               class="input trait-modifier-name"
                id="modifier-name"
                placeholder="Modifier Name">
       </div>
@@ -555,19 +810,141 @@ function onWheel(event, obj, key, step = 1, min = -9999, max = 9999) {
   width: 7.5em;
 }
 
+.trait-modifier-preset-field {
+  position: relative;
+  width: 100%;
+}
+
+.trait-modifier-preset-button {
+  width: 100%;
+  text-align: left;
+  padding: 0 0.7em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trait-modifier-dropdown {
+  position: absolute;
+  top: calc(100% + 0.2em);
+  left: 0;
+  right: 0;
+  max-height: 14em;
+  overflow-y: auto;
+  background-color: var(--Color2);
+  border: 3px solid var(--Color3);
+  border-radius: 0.5em;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  z-index: 20;
+}
+
+.trait-modifier-option {
+  padding: 0.6em 0.8em;
+  border-bottom: 1px solid var(--Color3);
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.trait-modifier-option:hover {
+  background-color: var(--Color5);
+}
+
+.trait-modifier-option:last-child {
+  border-bottom: none;
+}
+
+.trait-modifier-option-empty {
+  cursor: default;
+}
+
+.trait-modifier-option-empty:hover {
+  background-color: transparent;
+}
+
+.trait-modifier-value {
+  margin-left: 0 !important;
+}
+
+.trait-modifier-mode {
+  width: 100%;
+}
+
+.trait-modifier-name {
+  width: 100% !important;
+}
+
+.trait-modifier-row {
+  display: grid;
+  width: 50em;
+  grid-template-columns: 16em 7.5em 5.5em 18em;
+  gap: 1em;
+  align-items: center;
+}
+
 .traits-container {
   display: flex;
   flex-direction: column;
-  margin-top: 1em;
-  gap: 1em;
+  margin-top: 1.2em;
+  gap: 1.2em;
 }
 
 .traits-subcontainer{
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
   gap: 1em;
 
+}
+
+.trait-name-field {
+  position: relative;
+  width: 24.5em;
+}
+
+.trait-name-field #trait-name {
+  width: 100%;
+}
+
+.trait-dropdown {
+  position: absolute;
+  top: calc(100% + 0.2em);
+  left: 0;
+  right: 0;
+  max-height: 18em;
+  overflow-y: auto;
+  background-color: var(--Color2);
+  border: 3px solid var(--Color3);
+  border-radius: 0.5em;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  z-index: 20;
+}
+
+.trait-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.2em;
+  padding: 0.6em 0.8em;
+  border-bottom: 1px solid var(--Color3);
+  cursor: pointer;
+  line-height: 1.35;
+}
+
+.trait-option:hover {
+  background-color: var(--Color5);
+}
+
+.trait-option:last-child {
+  border-bottom: none;
+}
+
+.trait-option-empty {
+  cursor: default;
+  justify-content: center;
+}
+
+.trait-option-empty:hover {
+  background-color: transparent;
 }
 
 #trait-name{

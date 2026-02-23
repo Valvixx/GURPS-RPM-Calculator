@@ -136,6 +136,32 @@ function damageEnergy(dice, bonus) {
   return damageToIndex(dice, bonus);
 }
 
+function getTraitModifierMode(mod) {
+  return mod?.mode === 'flat' ? 'flat' : 'percent'
+}
+
+function getTraitAdjustedPoints(trait) {
+  const basePts = Number(trait.value) || 0
+  const modifiers = trait.traitModifiers || []
+
+  const totalPct = modifiers
+      .filter(mod => getTraitModifierMode(mod) === 'percent')
+      .reduce((sum, mod) => sum + (Number(mod.value) || 0), 0)
+
+  const totalFlat = modifiers
+      .filter(mod => getTraitModifierMode(mod) === 'flat')
+      .reduce((sum, mod) => sum + (Number(mod.value) || 0), 0)
+
+  return (basePts + totalFlat) * (1 + totalPct / 100)
+}
+
+function formatTraitModifier(mod) {
+  const rawValue = Number(mod.value)
+  const value = Number.isFinite(rawValue) ? rawValue : 0
+  const suffix = getTraitModifierMode(mod) === 'flat' ? ' pts' : '%'
+  return `${mod.name}, ${value > 0 ? '+' : ''}${value}${suffix}`
+}
+
 // Подсчет количества Greater эффектов
 const greaterEffectsCount = computed(() => {
   return props.spellEffects.filter(eff => eff.size === 'Greater').length
@@ -224,12 +250,7 @@ const baseEnergy = computed(() => {
 
   // -----TRAITS-----
   const traitsEnergyValue = fieldsStore.spellTraits.reduce((acc, trait) => {
-    const basePts = Number(trait.value) || 0;
-
-    const totalPct = (trait.traitModifiers || [])
-        .reduce((sum, mod) => sum + (Number(mod.value) || 0), 0);
-
-    const adjustedPts = basePts * (1 + totalPct / 100);
+    const adjustedPts = getTraitAdjustedPoints(trait)
 
     const energyForTrait = adjustedPts >= 0
         ? Math.ceil(adjustedPts)
@@ -435,7 +456,7 @@ const typicalCasting = computed(() => {
       if (trait.traitModifiers && trait.traitModifiers.length > 0) {
         const modifiersList = trait.traitModifiers
             .filter(mod => mod.name && mod.value)
-            .map(mod => `${mod.name}, ${mod.value > 0 ? '+' : ''}${mod.value}%`)
+            .map(mod => formatTraitModifier(mod))
             .join('; ')
         if (modifiersList) {
           modifiersStr = ` (${modifiersList})`
@@ -497,11 +518,7 @@ function calculateDamageEnergy(dice, bonus, type) {
 }
 
 function calculateTraitEnergy(trait) {
-  const basePts = Number(trait.value) || 0
-  const totalPct = (trait.traitModifiers || [])
-      .reduce((sum, mod) => sum + (Number(mod.value) || 0), 0)
-
-  const adjustedPts = basePts * (1 + totalPct / 100)
+  const adjustedPts = getTraitAdjustedPoints(trait)
 
   return adjustedPts >= 0
       ? Math.ceil(adjustedPts)
