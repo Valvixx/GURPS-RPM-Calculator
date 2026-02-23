@@ -17,6 +17,7 @@ export const useFieldsStore = defineStore('fields', {
 
         summonedValue: 0,
         summonedType: 'summoned',
+        uiDenseMode: false,
 
         aoeRadius: 0,
         aoeType: 'Everyone',

@@ -2,6 +2,7 @@
 import { computed, watch } from 'vue'
 import { useEnergyStore } from '../stores/energy.js'
 import { useFieldsStore } from "../stores/fields.js"
+import StyledDropdown from "./StyledDropdown.vue";
 
 const energyStore = useEnergyStore()
 const fieldsStore = useFieldsStore()
@@ -85,10 +86,14 @@ watch([distanceValue, distanceUnit], () => {
           placeholder="Enter distance"
           class="input"
       />
-      <select v-model="distanceUnit" class="select">
-        <option value="yards">Yards</option>
-        <option value="miles">Miles</option>
-      </select>
+      <StyledDropdown
+          v-model="distanceUnit"
+          :options="[
+            { label: 'Yards', value: 'yards' },
+            { label: 'Miles', value: 'miles' }
+          ]"
+          class="select"
+      />
     </div>
 
     <div class="output">
@@ -112,7 +117,7 @@ watch([distanceValue, distanceUnit], () => {
   gap: 1em;
 }
 
-.input, .select {
+.input {
   text-align: center;
   height: 2em;
   font-size: 1em;
@@ -122,12 +127,12 @@ watch([distanceValue, distanceUnit], () => {
   width: 100%;
 }
 
-.input:hover, .select:hover {
-  border-color: var(--Color4);
+.select {
+  width: 100%;
 }
 
-.select:hover{
-  cursor: pointer;
+.input:hover {
+  border-color: var(--Color4);
 }
 
 .output{

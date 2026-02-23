@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useFieldsStore } from "../stores/fields.js"
 import { storeToRefs } from "pinia"
+import StyledDropdown from "./StyledDropdown.vue";
 
 const fieldsStore = useFieldsStore()
 const { aoeRadius, aoeType, aoeValue } = storeToRefs(fieldsStore)
@@ -24,11 +25,11 @@ const aoeEnergy = computed(() => {
     <div class="row">
       <input v-model="aoeRadius" type="number" placeholder="Radius(yd)" class="input" />
 
-      <select v-model="aoeType" class="select">
-        <option>Everyone</option>
-        <option>Include</option>
-        <option>Exclude</option>
-      </select>
+      <StyledDropdown
+          v-model="aoeType"
+          :options="['Everyone', 'Include', 'Exclude']"
+          class="select"
+      />
 
       <input
           v-model="aoeValue"
@@ -58,8 +59,7 @@ const aoeEnergy = computed(() => {
   gap: 1em;
 }
 
-.input,
-.select {
+.input {
   text-align: center;
   height: 2em;
   font-size: 1em;
@@ -69,13 +69,12 @@ const aoeEnergy = computed(() => {
   width: 100%;
 }
 
-.input:hover,
-.select:hover {
-  border-color: var(--Color4);
+.select {
+  width: 100%;
 }
 
-.select:hover {
-  cursor: pointer;
+.input:hover {
+  border-color: var(--Color4);
 }
 
 .output {

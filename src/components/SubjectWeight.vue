@@ -2,6 +2,7 @@
 import { computed, watch } from 'vue'
 import { useEnergyStore} from '../stores/energy.js'
 import {useFieldsStore} from "../stores/fields.js";
+import StyledDropdown from "./StyledDropdown.vue";
 
 const energyStore = useEnergyStore()
 const fieldsStore = useFieldsStore()
@@ -65,10 +66,14 @@ watch([massValue, massUnit], () => {
           placeholder="Enter mass"
           class="input"
       />
-      <select v-model="massUnit" class="select">
-        <option value="lbs">lbs</option>
-        <option value="tons">tons</option>
-      </select>
+      <StyledDropdown
+          v-model="massUnit"
+          :options="[
+            { label: 'lbs', value: 'lbs' },
+            { label: 'tons', value: 'tons' }
+          ]"
+          class="select"
+      />
     </div>
     <div class="output">
       <strong>Energy: +{{ energyStore.weight }}</strong>
@@ -90,7 +95,7 @@ watch([massValue, massUnit], () => {
   gap: 1em;
 }
 
-.input, .select {
+.input {
   text-align: center;
   height: 2em;
   font-size: 1em;
@@ -99,12 +104,13 @@ watch([massValue, massUnit], () => {
   border-radius: 0.5em;
   width: 100%;
 }
-.input:hover, .select:hover {
-  border-color: var(--Color4);
+
+.select {
+  width: 100%;
 }
 
-.select:hover{
-  cursor: pointer;
+.input:hover {
+  border-color: var(--Color4);
 }
 
 .output{

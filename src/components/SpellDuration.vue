@@ -2,6 +2,7 @@
 import { computed, watch } from 'vue'
 import { useEnergyStore} from '../stores/energy.js'
 import {useFieldsStore} from "../stores/fields.js";
+import StyledDropdown from "./StyledDropdown.vue";
 
 const energyStore = useEnergyStore()
 const fieldsStore = useFieldsStore()
@@ -76,14 +77,18 @@ watch([durationValue, durationUnit], () => {
           placeholder="Enter value"
           class="input"
       />
-      <select v-model="durationUnit" class="select">
-        <option value="minutes">Minutes</option>
-        <option value="hours">Hours</option>
-        <option value="days">Days</option>
-        <option value="weeks">Weeks</option>
-        <option value="months">Months</option>
-        <option value="years">Years</option>
-      </select>
+      <StyledDropdown
+          v-model="durationUnit"
+          :options="[
+            { label: 'Minutes', value: 'minutes' },
+            { label: 'Hours', value: 'hours' },
+            { label: 'Days', value: 'days' },
+            { label: 'Weeks', value: 'weeks' },
+            { label: 'Months', value: 'months' },
+            { label: 'Years', value: 'years' }
+          ]"
+          class="select"
+      />
     </div>
 
     <div class="output">
@@ -106,7 +111,7 @@ watch([durationValue, durationUnit], () => {
   gap: 1em;
 }
 
-.input, .select {
+.input {
   text-align: center;
   height: 2em;
   font-size: 1em;
@@ -115,12 +120,13 @@ watch([durationValue, durationUnit], () => {
   border-radius: 0.5em;
   width: 100%;
 }
-.input:hover, .select:hover {
-  border-color: var(--Color4);
+
+.select {
+  width: 100%;
 }
 
-.select:hover{
-  cursor: pointer;
+.input:hover {
+  border-color: var(--Color4);
 }
 
 .output{

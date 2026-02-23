@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useEnergyStore} from '../stores/energy.js'
 import {useFieldsStore} from "../stores/fields.js";
+import StyledDropdown from "./StyledDropdown.vue";
 
 const energyStore = useEnergyStore()
 const fieldsStore = useFieldsStore()
@@ -62,10 +63,14 @@ energyStore.summoned = computed(() => {
           placeholder="Power (%)"
           class="input"
       />
-      <select v-model="controlType" class="select">
-        <option value="summoned">Summoned</option>
-        <option value="controlled">Controlled</option>
-      </select>
+      <StyledDropdown
+          v-model="controlType"
+          :options="[
+            { label: 'Summoned', value: 'summoned' },
+            { label: 'Controlled', value: 'controlled' }
+          ]"
+          class="select"
+      />
     </div>
 
     <div class="output">
@@ -89,7 +94,7 @@ energyStore.summoned = computed(() => {
   gap: 1em;
 }
 
-.input, .select {
+.input {
   text-align: center;
   height: 2em;
   font-size: 1em;
@@ -100,12 +105,12 @@ energyStore.summoned = computed(() => {
   width: 100%;
 }
 
-.input:hover, .select:hover {
-  border-color: var(--Color4);
+.select {
+  width: 100%;
 }
 
-.select:hover{
-  cursor: pointer;
+.input:hover {
+  border-color: var(--Color4);
 }
 
 .output {

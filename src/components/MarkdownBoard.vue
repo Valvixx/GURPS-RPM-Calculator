@@ -614,12 +614,16 @@ function copyCurrent() {
 
 <style scoped>
 .markdown-preview {
-  width: 40em;
+  width: min(42em, 100%);
   background: var(--Color2);
   padding: 1em;
   border: 3px solid var(--Color3);
   border-radius: 0.5em;
-  min-height: 30em;
+  align-self: flex-start;
+  position: sticky;
+  top: 4.1em;
+  max-height: calc(100vh - 4.8em);
+  overflow: hidden;
 }
 
 .pre-wrapper {
@@ -631,8 +635,10 @@ function copyCurrent() {
   background-color: var(--Color5);
   padding: 1em;
   border-radius: 0.5em;
-  min-height: 20em;
   line-height: 1.5em;
+  margin: 0;
+  max-height: calc(100vh - 11.5em);
+  overflow-y: auto;
 }
 
 .icon {
@@ -689,4 +695,16 @@ function copyCurrent() {
   font-weight: bold;
   background-color: var(--Color3);
 }
+
+@media (max-width: 1380px) {
+  .markdown-preview {
+    position: static;
+    max-height: none;
+  }
+
+  .pre-wrapper pre {
+    max-height: none;
+  }
+}
+
 </style>
